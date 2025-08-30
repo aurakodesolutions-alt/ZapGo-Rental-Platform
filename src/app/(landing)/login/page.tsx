@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useToast } from "@/hooks/use-toast";
 
-export default function AdminLoginPage() {
+ function AdminLogin() {
     const router = useRouter();
     const search = useSearchParams();
     const { toast } = useToast();
@@ -88,7 +88,6 @@ export default function AdminLoginPage() {
 
     // While we check session, show the card (same as your skeleton pattern)
     return (
-        <Suspense fallback={<div>Loading...</div>}>
         <div className="flex min-h-screen items-center justify-center bg-background">
             <Card className="mx-auto w-full max-w-sm rounded-2xl shadow-xl">
                 <CardHeader className="text-center">
@@ -135,6 +134,13 @@ export default function AdminLoginPage() {
                 </CardContent>
             </Card>
         </div>
-        </Suspense>
     );
+}
+
+export default function AdminLoginPage() {
+    return(
+        <Suspense>
+            <AdminLogin />
+        </Suspense>
+    )
 }
