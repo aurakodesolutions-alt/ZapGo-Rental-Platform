@@ -7,6 +7,7 @@ import { MobileCta } from '@/components/landing/mobile-cta';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import {ThemeProvider} from "@/components/theme-provider";
+import {TopNoticeBar} from "@/components/landing/top-notice-bar";
 
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:9002';
@@ -163,6 +164,7 @@ export default function RootLayout({
         {/*</div>*/}
         <ThemeProvider>
             <div className="relative flex min-h-screen flex-col">
+                <TopNoticeBar />
             <SiteHeader />
             <main className="flex-1">{children}</main>
             <SiteFooter />
