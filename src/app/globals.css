@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%; /* #F7FAFC */
+    --foreground: 220 58% 8%; /* #0B1220 */
+    --card: 210 40% 98%;
+    --card-foreground: 220 58% 8%;
+    --popover: 210 40% 98%;
+    --popover-foreground: 220 58% 8%;
+    --primary: 89 58% 51%; /* #80C42F */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 215 68% 24%; /* #143863 */
+    --secondary-foreground: 210 40% 98%;
+    --muted: 210 40% 92%;
+    --muted-foreground: 220 58% 30%;
+    --accent: 96 49% 41%; /* #659F37 */
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 40% 88%;
+    --input: 210 40% 92%;
+    --ring: 89 58% 51%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 220 58% 8%; /* #0B1220 */
+    --foreground: 210 40% 98%; /* #F7FAFC */
+    --card: 220 58% 8%;
+    --card-foreground: 210 40% 98%;
+    --popover: 220 58% 8%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 89 58% 51%; /* #80C42F */
+    --primary-foreground: 220 58% 8%;
+    --secondary: 215 68% 24%; /* #143863 */
+    --secondary-foreground: 210 40% 98%;
+    --muted: 215 68% 14%;
+    --muted-foreground: 210 40% 70%;
+    --accent: 96 49% 41%; /* #659F37 */
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 68% 18%;
+    --input: 215 68% 18%;
+    --ring: 89 58% 51%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+.gradient-background {
+  background: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--primary)));
+}
+
+.noise-bg {
+  position: relative;
+  isolation: isolate;
+}
+.noise-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1024 1024' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+}
