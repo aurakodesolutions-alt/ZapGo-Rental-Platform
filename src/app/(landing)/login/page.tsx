@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import {FormEvent, Suspense, useEffect, useState} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,6 +88,7 @@ export default function AdminLoginPage() {
 
     // While we check session, show the card (same as your skeleton pattern)
     return (
+        <Suspense fallback={<div>Loading...</div>}>
         <div className="flex min-h-screen items-center justify-center bg-background">
             <Card className="mx-auto w-full max-w-sm rounded-2xl shadow-xl">
                 <CardHeader className="text-center">
@@ -134,5 +135,6 @@ export default function AdminLoginPage() {
                 </CardContent>
             </Card>
         </div>
+        </Suspense>
     );
 }
