@@ -12,7 +12,7 @@ export function SiteFooter() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center md:text-left">
                     <div className="flex flex-col justify-center space-y-4 items-center md:items-start md:col-span-1">
                         <Link href="/" className="flex items-center space-x-2">
-                            <Image src="/logo.png" alt="ZapGo Rental Logo" width={110} height={32} className={""} />
+                            <Image src="/logo.png" alt="ZapGo Rental Logo" width={110} height={32} className={"dark:invert"} />
                             <span className="font-bold text-xl font-headline">ZapGo Rental</span>
                         </Link>
                         <p className="text-muted-foreground max-w-xs">
