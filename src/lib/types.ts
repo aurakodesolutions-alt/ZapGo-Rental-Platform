@@ -1,7 +1,48 @@
 import type {DateRange} from "react-day-picker";
+export type ID = string;
+export type Currency = 'INR';
+
+export interface Rider {
+    id: ID;
+    fullName: string;
+    phone: string;
+    email?: string;
+    idProofType: 'Aadhaar' | 'DL' | 'Passport';
+    idProofNumber: string;
+    documentExpiryDate: string; // ISO
+    photoUrl?: string;
+    status: 'active' | 'blocked';
+    rentalsCount: number;
+    totalSpent: number;
+    createdAt: string;
+    updatedAt: string;
+    kycDocuments?: Array<{ name: string; url: string; }>;
+}
+
+export type RentalStatus = 'ongoing' | 'completed' | 'overdue' | 'cancelled';
+
+export interface Rental {
+    id: ID;
+    riderId: ID;
+    vehicleId: ID;
+    plan: Plan;
+    startDate: string;
+    expectedReturnDate: string;
+    actualReturnDate: string | null;
+    status: RentalStatus;
+    payableTotal: number;
+    paidTotal: number;
+    balanceDue: number;
+    createdAt: string;
+    updatedAt: string;
+    // Denormalized for convenience
+    rider?: Rider;
+    vehicle?: Vehicle;
+}
 
 export type Vehicle = {
     id: string;
+    code:string;
     name: string;                 // e.g., "ZapGo S1"
     brand: string;                // e.g., "Ola", "Ather"
     images: string[];             // gallery (public URLs)
@@ -33,10 +74,13 @@ export interface Booking {
 }
 
 export interface Settings {
-    pricing: {
-        daily: number;
-        weekly: number;
-    }
+    companyName: string;
+    currency: Currency;
+    graceDays: number;
+    dailyRateDefault: number;
+    weeklyRateDefault: number;
+    lateFeeEnabled: boolean;
+    lateFeePerDay: number;
 }
 export type Plan = "Lite" | "Pro";
 export interface WizardBookingDraft {
@@ -51,4 +95,21 @@ export interface WizardBookingDraft {
     termsAccepted?: boolean;
     bookingId?: string;
     bookingCode?: string;
+}
+
+export type PayMethod = 'cash' | 'upi' | 'card' | 'bank' | 'online';
+
+export interface Payment {
+    id: ID;
+    rentalId: ID;
+    riderId: ID;
+    amount: number;
+    method: PayMethod;
+    txnRef?: string;
+    transactionDate: string;
+    createdAt: string;
+    updatedAt: string;
+    // Denormalized for convenience
+    rider?: Rider;
+    rental?: Rental;
 }

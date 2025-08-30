@@ -1,6 +1,10 @@
 import type {Metadata} from 'next';
 import '../globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import AuthProvider from "@/lib/auth/auth-provider";
+import {Sidebar} from "@/components/admin/layout/sidebar";
+import {Topbar} from "@/components/admin/layout/topbar";
+import {Footer} from "@/components/admin/layout/footer";
 // import { DevTools } from '@/components/DevTools';
 
 export const metadata: Metadata = {
@@ -30,7 +34,18 @@ export default function RootLayout({
             <meta name="theme-color" content="#80C42F" />
         </head>
         <body className="font-body bg-background text-foreground antialiased">
-        {children}
+        <AuthProvider>
+            <div className="grid min-h-screen w-full md:grid-cols-[240px_1fr] lg:grid-cols-[280px_1fr]">
+                <Sidebar />
+                <div className="flex flex-col">
+                    <Topbar />
+                    <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
+                        {children}
+                    </main>
+                    <Footer />
+                </div>
+            </div>
+        </AuthProvider>
         <Toaster />
         {/*<DevTools />*/}
         </body>

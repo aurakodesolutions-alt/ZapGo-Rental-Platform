@@ -1,51 +1,89 @@
+
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-// import { useAuthStore } from '@/store/auth';
-import { Skeleton } from '@/components/ui/skeleton';
+import { DollarSign, Bike, Clock, AlertTriangle, Battery, BatteryWarning } from 'lucide-react';
+import { PageHeader } from '@/components/admin/page-header';
+import { StatCard } from '@/components/admin/dashboard/stat-card';
+import { EarningsChart } from '@/components/admin/charts/earnings-chart';
+import { VehicleUtilizationChart } from '@/components/admin/charts/vehicle-utilization-chart';
+import { RecentActivity } from '@/components/admin/dashboard/recent-activity';
+import { formatINR } from '@/lib/format';
+import { useEffect, useState } from 'react';
+import * as mockApi from '@/lib/mock-data';
+import Link from 'next/link';
+import { RecentReturns } from '@/components/admin/dashboard/recent-returns';
 
-export default function Home() {
-    const router = useRouter();
-    // const { token, user } = useAuthStore((state) => ({ token: state.token, user: state.user }));
-    // const isLoading = useAuthStore((state) => state.isLoading);
-    const isLoading = true;
+interface DashboardStats {
+    earningsToday: number;
+    vehiclesAvailable: number;
+    totalVehicles: number;
+    ongoingRentals: number;
+    overdueRentals: number;
+    batteries: {
+        total: number;
+        available: number;
+        assigned: number;
+        charging: number;
+        service_due: number;
+    };
+}
 
-    // useEffect(() => {
-    //     if (!isLoading) {
-    //         if (token && user) {
-    //             router.replace('/dashboard');
-    //         } else {
-    //             router.replace('/login');
-    //         }
-    //     }
-    // }, [token, user, router, isLoading]);
+export default function DashboardPage() {
+    const [stats, setStats] = useState<DashboardStats | null>(null);
 
     return (
-        <div className="flex h-screen w-full items-center justify-center">
-            <div className="flex flex-col items-center space-y-4">
-                <div className="flex items-center space-x-2">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-8 w-8 text-primary"
-                    >
-                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-                        <path d="M5 3v4" />
-                        <path d="M19 17v4" />
-                        <path d="M3 5h4" />
-                        <path d="M17 19h4" />
-                    </svg>
-                    <h1 className="text-2xl font-headline font-bold text-primary">ZapGo Admin</h1>
+        <div className="flex flex-1 flex-col gap-4">
+            <PageHeader title="Dashboard" description="Here's a snapshot of your business today." />
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                    title="Today's Earnings"
+                    value={formatINR(stats?.earningsToday ?? 0)}
+                    icon={<DollarSign className="h-5 w-5" />}
+                />
+                <StatCard
+                    title="Vehicles Available"
+                    value={`${stats?.vehiclesAvailable ?? 0} / ${stats?.totalVehicles ?? 0}`}
+                    icon={<Bike className="h-5 w-5" />}
+                />
+                <StatCard
+                    title="Ongoing Rentals"
+                    value={String(stats?.ongoingRentals ?? 0)}
+                    icon={<Clock className="h-5 w-5" />}
+                />
+                <StatCard
+                    title="Overdue Rentals"
+                    value={String(stats?.overdueRentals ?? 0)}
+                    icon={<AlertTriangle className="h-5 w-5" />}
+                />
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Link href="/batteries?filters.status=available">
+                    <StatCard title="Batteries Available" value={String(stats?.batteries.available ?? 0)} icon={<Battery className="h-5 w-5"/>}/>
+                </Link>
+                <Link href="/batteries?filters.status=assigned">
+                    <StatCard title="Batteries Assigned" value={String(stats?.batteries.assigned ?? 0)} icon={<Battery className="h-5 w-5"/>}/>
+                </Link>
+                <Link href="/batteries?filters.status=charging">
+                    <StatCard title="Batteries Charging" value={String(stats?.batteries.charging ?? 0)} icon={<Battery className="h-5 w-5"/>}/>
+                </Link>
+                <Link href="/batteries?filters.status=service_due">
+                    <StatCard title="Batteries Service Due" value={String(stats?.batteries.service_due ?? 0)} icon={<BatteryWarning className="h-5 w-5"/>}/>
+                </Link>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <div className="lg:col-span-4">
+                    <EarningsChart />
                 </div>
-                <Skeleton className="h-4 w-48" />
+                <div className="lg:col-span-3 grid gap-4">
+                    <RecentActivity />
+                    <RecentReturns />
+                </div>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
+                <VehicleUtilizationChart />
             </div>
         </div>
     );

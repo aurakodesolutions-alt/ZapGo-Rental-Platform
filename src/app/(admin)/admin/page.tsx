@@ -1,34 +1,21 @@
-'use client';
+// /app/(admin)/admin/page.tsx
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/auth-options";
+import { redirect } from "next/navigation";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-// import { useAuthStore } from '@/store/auth';
-import { Skeleton } from '@/components/ui/skeleton';
-import {cn} from "@/lib/utils";
-import Image from "next/image";
+export const runtime = "nodejs";
+export const revalidate = 0;
 
-export default function Home() {
-    const router = useRouter();
-    // const { token, user } = useAuthStore((state) => ({ token: state.token, user: state.user }));
-    // const isLoading = useAuthStore((state) => state.isLoading);
-    let bool = true;
-    const isLoading = !bool
+export default async function AdminEntry() {
+    const session = await getServerSession(authOptions);
 
-    useEffect(() => {
-        if (!isLoading) {
-            router.replace('/admin/login');
-        }
-    }, [router, isLoading]);
+    if (!session) {
+        redirect("/login?callbackUrl=/admin");
+    }
 
-    return (
-        <div className="flex h-screen w-full items-center justify-center">
-            <div className="flex flex-col items-center space-y-4">
-                <div className="flex items-center space-x-2">
-                    <Image src="/logo.png" alt="ZapGo Rental Logo" width={110} height={32} className={""} />
-                    <h1 className="text-2xl font-headline font-bold text-primary">ZapGo Admin</h1>
-                </div>
-                <Skeleton className="h-4 w-48" />
-            </div>
-        </div>
-    );
+    if ((session.user as any)?.role !== "admin") {
+        redirect("/");
+    }
+
+    redirect("/admin/dashboard");
 }
