@@ -6,9 +6,10 @@ const config: sql.config = {
     database: process.env.DB_NAME,
     server: process.env.DB_SERVER || "localhost",
     options: {
-        encrypt: true,
+        encrypt: false,
         trustServerCertificate: true,
     },
+    port:1433
 };
 
 let pool: sql.ConnectionPool;

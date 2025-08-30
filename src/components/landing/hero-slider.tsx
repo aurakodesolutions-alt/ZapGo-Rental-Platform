@@ -123,7 +123,7 @@ export function HeroSlider() {
                                                 <Button size="lg" asChild className="w-full sm:w-auto shadow-lg hover:scale-105 transition-transform duration-300">
                                                     <Link href="/book">Book Now</Link>
                                                 </Button>
-                                                <Button size="lg" variant="outline" asChild className="w-full sm:w-auto text-white border-white hover:bg-white hover:text-secondary shadow-lg hover:scale-105 transition-transform duration-300">
+                                                <Button size="lg" variant="outline" asChild className="w-full sm:w-auto text-white border-white hover:bg-white hover:text-secondary shadow-lg hover:scale-105 transition-transform duration-300 bg-transparent">
                                                     <Link href="#pricing">View Pricing</Link>
                                                 </Button>
                                             </div>
