@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import {useParams, useRouter} from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Pencil, Eye, Trash2 } from 'lucide-react';
 
@@ -28,8 +28,10 @@ import { useVehicle } from '@/hooks/api/use-vehicles';
 import type { Vehicle } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
-export default function VehicleDetailPage({ params }: { params: { id: string } }) {
+export default function VehicleDetailPage() {
     const router = useRouter();
+    const params = useParams<{ id: string }>();          // ✅ useParams in Client Components
+    const id = Number(params?.id) ;
     const [editing, setEditing] = useState(false);
     const { toast } = useToast();
 

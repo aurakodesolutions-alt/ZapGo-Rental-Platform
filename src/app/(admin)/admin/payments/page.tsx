@@ -61,13 +61,13 @@ export default function PaymentsPage() {
                             ) : payments.length > 0 ? payments.map((payment) => (
                                 <TableRow key={payment.id}>
                                     <TableCell className="font-medium">
-                                        <Link href={`/payments/${payment.id}`} className="hover:underline text-primary">
+                                        <Link href={`/admin/payments/${payment.id}`} className="hover:underline text-primary">
                                             #{payment.id.substring(0, 7)}...
                                         </Link>
                                     </TableCell>
                                     <TableCell>{payment?.rider?.fullName}</TableCell>
                                     <TableCell>
-                                        <Link href={`/rentals/${payment.rentalId}`} className="hover:underline">
+                                        <Link href={`/admin/rentals/${payment.rentalId}`} className="hover:underline">
                                             #{payment.rentalId.substring(0, 7)}...
                                         </Link>
                                     </TableCell>

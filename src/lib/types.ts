@@ -33,6 +33,30 @@ export interface RiderKyc {
     kycCreatedAtUtc: string; // ISO date string
 }
 
+// --- Rider create/update DTOs ---
+
+export type RiderKycInput = {
+    aadhaarNumber: string;
+    aadhaarImageUrl: string;
+
+    panNumber: string;
+    panCardImageUrl: string;
+
+    drivingLicenseNumber?: string | null;
+    drivingLicenseImageUrl?: string | null;
+
+};
+
+export type RiderCreateInput = {
+    fullName: string;
+    phone: string;
+    email: string;
+    /** Optional: include if KYC is being captured at creation */
+    kyc?: RiderKycInput;
+};
+
+export type RiderUpdateInput = Partial<RiderCreateInput>;
+
 
 export type RentalStatus = "ongoing" | "completed" | "overdue" | "cancelled";
 

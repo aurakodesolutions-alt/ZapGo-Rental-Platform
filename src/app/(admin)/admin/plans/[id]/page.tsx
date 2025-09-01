@@ -28,7 +28,7 @@ export default function PlanDetailPage() {
     // const params = useParams();
     const router = useRouter();
     const params = useParams<{ id: string }>();          // ✅ useParams in Client Components
-    const id = params?.id as string;                     // route param (string)
+    const id = Number(params?.id) ;                   // route param (string)
     const [editing, setEditing] = useState(false);
 
     const { plan, isLoading, isError, remove } = usePlan(id);
