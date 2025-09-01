@@ -25,7 +25,7 @@ import { useToast } from "@/hooks/use-toast";
         if (status === "authenticated") {
             const role = (data?.user as any)?.role;
             if (role === "admin") {
-                router.replace("/admin"); // server gate will route to /admin/dashboard
+                router.replace("/admin/dashboard"); // server gate will route to /admin/dashboard
             } else {
                 router.replace("/");
             }
@@ -88,7 +88,7 @@ import { useToast } from "@/hooks/use-toast";
 
     // While we check session, show the card (same as your skeleton pattern)
     return (
-        <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="flex min-h-[80vh] items-center justify-center bg-background">
             <Card className="mx-auto w-full max-w-sm rounded-2xl shadow-xl">
                 <CardHeader className="text-center">
                     <div className="mb-2 flex items-center justify-center space-x-2">

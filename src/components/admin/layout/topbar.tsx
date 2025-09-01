@@ -15,25 +15,63 @@ import {
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useAuthStore } from '@/lib/auth/auth-store'; // This is our store now
+import { signOut } from "next-auth/react"
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import {Skeleton} from "@/components/ui/skeleton";
+
+function TopbarSkeleton() {
+    return (
+        <header className="sticky top-0 z-10 flex h-[75px] items-center gap-4 border-b bg-card px-4 md:px-6">
+            {/* Left / brand + desktop nav skeletons */}
+            <nav className="hidden items-center gap-5 md:flex lg:gap-6">
+                <div className="flex items-center gap-2">
+                    <Zap className="h-6 w-6 text-primary" />
+                    <Skeleton className="h-4 w-20" />
+                </div>
+                <div className="hidden md:flex items-center gap-5 lg:gap-6">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-20" />
+                </div>
+            </nav>
+
+            {/* Mobile menu button skeleton */}
+            <div className="md:hidden">
+                <Skeleton className="h-10 w-10 rounded-md" />
+            </div>
+
+            {/* Search + actions skeletons */}
+            <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+                <div className="ml-auto hidden sm:block">
+                    <Skeleton className="h-10 w-[220px] sm:w-[300px] md:w-[200px] lg:w-[300px] rounded-md" />
+                </div>
+                <Skeleton className="h-10 w-32 rounded-md" />
+                <Skeleton className="h-10 w-10 rounded-full" />
+            </div>
+        </header>
+    );
+}
 
 export function Topbar() {
-    const { user, signOut } = useAuthStore(); // access the user & signOut from the store
+    const { user, status } = useAuthStore(); // access the user & signOut from the store
     const router = useRouter();
     const pathname = usePathname();
 
     const handleLogout = () => {
-        signOut();  // Call signOut to clear the store and session
-        router.push('/admin/login');  // Redirect to login page
+        signOut({ callbackUrl: "/login" });  // Call signOut to clear the store and session
+        // router.push('/login');  // Redirect to login page
     };
 
     const navLinks = [
-        { href: '/dashboard', label: 'Dashboard' },
-        { href: '/riders', label: 'Riders' },
-        { href: '/vehicles', label: 'Vehicles' },
-        { href: '/rentals', label: 'Rentals' },
-        { href: '/returns', label: 'Returns' },
+        { href: '/admin/dashboard', label: 'Dashboard' },
+        {href: '/admin/plans', label: 'Plans'},
+        { href: '/admin/riders', label: 'Riders' },
+        { href: '/admin/vehicles', label: 'Vehicles' },
+        { href: '/admin/rentals', label: 'Rentals' },
+        { href: '/admin/returns', label: 'Returns' },
     ];
 
     const MobileNavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
@@ -50,6 +88,12 @@ export function Topbar() {
             </Link>
         );
     };
+
+    if(status === 'unauthenticated') {
+        return (
+            <TopbarSkeleton/>
+        )
+    }
 
     return (
         <header className="sticky top-0 flex h-[75px] items-center gap-4 border-b bg-card px-4 md:px-6 z-10">

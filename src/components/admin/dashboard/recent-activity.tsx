@@ -29,10 +29,10 @@ export function RecentActivity() {
                             </Avatar>
                             <div className="ml-4 space-y-1">
                                 <p className="text-sm font-medium leading-none">
-                                    <Link href={`/riders/${payment.riderId}`} className="hover:underline">{payment?.rider?.fullName}</Link>
+                                    <Link href={`/admin/riders/${payment.riderId}`} className="hover:underline">{payment?.rider?.fullName}</Link>
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    Paid for Rental <Link href={`/rentals/${payment.rentalId}`} className="hover:underline">#{payment.rentalId.substring(0,4)}...</Link> via {payment.method}
+                                    Paid for Rental <Link href={`/admin/rentals/${payment.rentalId}`} className="hover:underline">#{payment.rentalId.substring(0,4)}...</Link> via {payment.method}
                                 </p>
                             </div>
                             <div className="ml-auto text-right">

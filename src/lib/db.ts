@@ -20,3 +20,6 @@ export async function getConnection() {
     }
     return pool;
 }
+
+export { sql };
+

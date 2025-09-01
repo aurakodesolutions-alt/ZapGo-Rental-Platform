@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import {ThemeProvider} from "@/components/theme-provider";
 import {TopNoticeBar} from "@/components/landing/top-notice-bar";
+import AuthProvider from "@/lib/auth/auth-provider";
 
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:9002';
@@ -162,6 +163,7 @@ export default function RootLayout({
             {/*<SiteFooter />*/}
             {/*<MobileCta />*/}
         {/*</div>*/}
+        <AuthProvider>
         <ThemeProvider>
             <div className="relative flex min-h-screen flex-col">
                 <TopNoticeBar />
@@ -172,6 +174,7 @@ export default function RootLayout({
             </div>
             <Toaster />
         </ThemeProvider>
+        </AuthProvider>
         <Toaster />
         </body>
         </html>

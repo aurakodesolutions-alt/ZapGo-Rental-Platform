@@ -27,15 +27,15 @@ export function RecentReturns() {
                             </Avatar>
                             <div className="ml-4 space-y-1">
                                 <p className="text-sm font-medium leading-none">
-                                    <Link href={`/vehicles/${rental?.vehicle?.id}`} className="hover:underline">{rental?.vehicle?.code}</Link>
+                                    <Link href={`/admin/vehicles/${rental?.vehicle?.id}`} className="hover:underline">{rental?.vehicle?.code}</Link>
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    Returned by <Link href={`/riders/${rental.riderId}`} className="hover:underline">{rental?.rider?.fullName}</Link>
+                                    Returned by <Link href={`/admin/riders/${rental.riderId}`} className="hover:underline">{rental?.rider?.fullName}</Link>
                                 </p>
                             </div>
                             <div className="ml-auto text-right">
                                 <p className="text-sm text-muted-foreground">{rental.actualReturnDate ? formatIST(rental.actualReturnDate, 'dd MMM') : 'N/A'}</p>
-                                <Link href={`/returns/${rental.id}`} className="text-sm text-primary hover:underline">
+                                <Link href={`/admin/returns/${rental.id}`} className="text-sm text-primary hover:underline">
                                     View
                                 </Link>
                             </div>

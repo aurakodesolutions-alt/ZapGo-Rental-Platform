@@ -1,4 +1,4 @@
-import { Rider, Vehicle, Rental, Payment, Settings } from './types';
+import { Rider, Vehicle, Rental, Payment, Settings, Alert } from './types';
 
 export const mockRiders: Rider[] = [
     { id: '1', fullName: 'Aarav Sharma', phone: '9876543210', email: 'aarav.sharma@example.com',  idProofType: 'Aadhaar', idProofNumber: '1234 5678 9012', documentExpiryDate: '2030-12-31', status: 'active', kycDocuments: [{ name: 'Aadhaar Card.pdf', url: '#' }], rentalsCount: 5, totalSpent: 25000 },
@@ -7,9 +7,9 @@ export const mockRiders: Rider[] = [
 ];
 
 export const mockVehicles: Vehicle[] = [
-    { id: 'v1', code: 'ZG-001', make: 'Ola', model: 'S1 Pro', color: 'Midnight Blue', registrationNumber: 'MH01AB1234', batteryHealth: 98, lastServiceDate: '2024-05-01', available: true, isServiceDue: false },
-    { id: 'v2', code: 'ZG-002', make: 'Ather', model: '450X', color: 'Space Grey', registrationNumber: 'DL02CD5678', batteryHealth: 92, lastServiceDate: '2024-03-15', available: false, isServiceDue: false },
-    { id: 'v3', code: 'ZG-003', make: 'TVS', model: 'iQube', color: 'Pearl White', registrationNumber: 'KA03EF9012', batteryHealth: 85, lastServiceDate: '2023-12-20', available: true, isServiceDue: true },
+    { id: 'v1', code: 'ZG-001', brand: 'Ola', name: 'S1 Pro', color: 'Midnight Blue', registrationNumber: 'MH01AB1234', batteryHealth: 98, lastServiceDate: '2024-05-01', available: true, isServiceDue: false },
+    { id: 'v2', code: 'ZG-002', brand: 'Ather', name: '450X', color: 'Space Grey', registrationNumber: 'DL02CD5678', batteryHealth: 92, lastServiceDate: '2024-03-15', available: false, isServiceDue: false },
+    { id: 'v3', code: 'ZG-003', brand: 'TVS', name: 'iQube', color: 'Pearl White', registrationNumber: 'KA03EF9012', batteryHealth: 85, lastServiceDate: '2023-12-20', available: true, isServiceDue: true },
 ];
 
 export const mockRentals: Rental[] = [
@@ -24,12 +24,12 @@ export const mockPayments: Payment[] = [
     { id: 'p3', rentalId: 'r3', riderId: '1', amount: 7000, method: 'online', transactionDate: '2024-07-10T10:03:00.000Z', rider: mockRiders[0], rental: mockRentals[2] },
 ];
 
-// export const mockAlerts: Alert[] = [
-//     { id: 'a1', type: 'Payment Due', message: 'Payment of ₹2000 due for Rental #r1', relatedId: 'r1', dueDate: '2024-07-27', status: 'unread' },
-//     { id: 'a2', type: 'Overdue Rental', message: 'Rental #r3 is overdue since 2024-07-17', relatedId: 'r3', dueDate: '2024-07-17', status: 'read' },
-//     { id: 'a3', type: 'Document Expiry', message: 'Rohan Mehta\'s DL is expiring soon.', relatedId: '3', dueDate: '2024-08-15', status: 'unread' },
-// ];
-//
+export const mockAlerts: Alert[] = [
+    { id: 'a1', type: 'Payment Due', message: 'Payment of ₹2000 due for Rental #r1', relatedId: 'r1', dueDate: '2024-07-27', status: 'unread' },
+    { id: 'a2', type: 'Overdue Rental', message: 'Rental #r3 is overdue since 2024-07-17', relatedId: 'r3', dueDate: '2024-07-17', status: 'read' },
+    { id: 'a3', type: 'Document Expiry', message: 'Rohan Mehta\'s DL is expiring soon.', relatedId: '3', dueDate: '2024-08-15', status: 'unread' },
+];
+
 // export const mockStaff: Staff[] = [
 //     { id: 's1', email: 'admin@zapgo.com', displayName: 'Super Admin', role: 'ADMIN', lastLogin: '2024-07-25T10:00:00.000Z', status: 'active' },
 //     { id: 's2', email: 'staff@zapgo.com', displayName: 'Rajesh Kumar', role: 'STAFF', lastLogin: '2024-07-25T09:30:00.000Z', status: 'active' },

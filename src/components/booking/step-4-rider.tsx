@@ -27,7 +27,8 @@ const riderSchema = z.object({
     aadhaarFile: z.any().optional(),
     panFile: z.any().optional(),
     dlFile: z.any().optional(),
-    termsAccepted: z.boolean().refine(val => val === true, "You must accept the terms."),
+    dlExpiry: z.string().optional(),
+    termsAccepted: z.boolean().refine(val => val, "You must accept the terms."),
 });
 
 type RiderFormData = z.infer<typeof riderSchema>;
@@ -153,7 +154,7 @@ export function Step4_Rider({ onNext }: Step4RiderProps) {
                                 </CardContent>
                             </Card>
 
-                            {draft.plan === 'Pro' && (
+                            {draft.plan?.planName === 'Pro' && (
                                 <Card>
                                     <CardHeader><CardTitle className="flex items-center gap-2"><Car className="text-primary"/> Driving License Details</CardTitle></CardHeader>
                                     <CardContent className="grid md:grid-cols-2 gap-4">
@@ -162,6 +163,9 @@ export function Step4_Rider({ onNext }: Step4RiderProps) {
                                         )} />
                                         <FormField control={form.control} name="dlFile" render={({ field }) => (
                                             <FormItem><FormLabel>Driving License Upload</FormLabel><FormControl><FileUpload file={field.value} onFileChange={field.onChange} /></FormControl><FormMessage /></FormItem>
+                                        )} />
+                                        <FormField control={form.control} name="dlExpiry" render={({ field }) => (
+                                            <FormItem><FormLabel>Driving License Expiry</FormLabel><FormControl><Input {...field} placeholder="Required for Pro plan" /></FormControl><FormMessage /></FormItem>
                                         )} />
                                     </CardContent>
                                 </Card>
