@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:sqlserver://DELL\DELL:1433;database=zapgo_rental</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="zapgorental@zapgorental-db.database.windows.net" uuid="428bcb45-e95a-49ea-8472-fbf7093527b3">
+      <driver-ref>sqlserver.ms</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.microsoft.sqlserver.jdbc.SQLServerDriver</jdbc-driver>
+      <jdbc-url>jdbc:sqlserver://zapgorental-db.database.windows.net;database=zapgorental</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
