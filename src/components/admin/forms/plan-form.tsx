@@ -23,6 +23,8 @@ type PlanFormProps = {
         planId: number;
         planName: string;
         features?: any;
+        joiningFees: number;
+        securityDeposit: number;
         requiredDocuments?: string[];
     };
     onSuccess?: () => void;
@@ -50,11 +52,16 @@ export function PlanForm({ plan, onSuccess }: PlanFormProps) {
                     : plan.features
                         ? JSON.stringify(plan.features, null, 2)
                         : '',
+            joiningFees: plan.joiningFees ? plan.joiningFees : 0,
+            securityDeposit: plan.securityDeposit ?? 0,
+
         }
         : {
             planName: '',
             requiredDocuments: [],
             featuresText: '',
+            joiningFees: 0,
+            securityDeposit: 0,
         };
 
     const form = useForm<PlanFormValues>({
@@ -76,6 +83,8 @@ export function PlanForm({ plan, onSuccess }: PlanFormProps) {
         const payload = {
             planName: data.planName,
             requiredDocuments: data.requiredDocuments,
+            joiningFees: data.joiningFees,
+            securityDeposit: data.securityDeposit,
             features,
         };
 
@@ -160,6 +169,28 @@ Fast support, Free helmet, Theft coverage`}
                                     />
                                 </FormControl>
                                 <p className="text-xs text-muted-foreground">Saved as JSON in the database.</p>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="joiningFees"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Joining Fees</FormLabel>
+                                <FormControl><Input placeholder="1000" {...field} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="securityDeposit"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Security Deposit</FormLabel>
+                                <FormControl><Input placeholder="1750" {...field} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}

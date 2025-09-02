@@ -9,6 +9,8 @@ export const runtime = "nodejs";
 const PlanCreateSchema = z.object({
     planName: z.string().min(2),
     requiredDocuments: z.array(z.string()).optional().default([]),
+    joiningFees: z.coerce.number().min(0, 'Must be ≥ 0'),
+    securityDeposit: z.coerce.number().min(0, 'Must be ≥ 0'),
     // Either an array/object or a string that represents JSON; UI already sends normalized “features”
     features: z.unknown().optional(), // we'll JSON.stringify whatever comes in (if defined)
 });
@@ -17,6 +19,8 @@ type PlanRow = {
     PlanId: number;
     PlanName: string;
     Features: string | null;            // JSON in NVARCHAR(MAX)
+    JoiningFee:number;
+    SecurityDeposit:number;
     RequiredDocuments: string | null;   // JSON array
     CreatedAt: string;
     UpdatedAt: string;
@@ -61,7 +65,7 @@ export async function GET(req: NextRequest) {
 
         const query = q
             ? `
-        SELECT PlanId, PlanName, Features, RequiredDocuments, CreatedAt, UpdatedAt
+        SELECT PlanId, PlanName, Features, RequiredDocuments, JoiningFee, SecurityDeposit, CreatedAt, UpdatedAt
         FROM dbo.Plans
         WHERE PlanName LIKE @Like
            OR (Features IS NOT NULL AND Features LIKE @Like)
@@ -70,7 +74,7 @@ export async function GET(req: NextRequest) {
         OFFSET @Offset ROWS FETCH NEXT @Limit ROWS ONLY;
       `
             : `
-        SELECT PlanId, PlanName, Features, RequiredDocuments, CreatedAt, UpdatedAt
+        SELECT PlanId, PlanName, Features, RequiredDocuments, JoiningFee, SecurityDeposit, CreatedAt, UpdatedAt
         FROM dbo.Plans
         ORDER BY PlanId DESC
         OFFSET @Offset ROWS FETCH NEXT @Limit ROWS ONLY;
@@ -82,6 +86,8 @@ export async function GET(req: NextRequest) {
             planId: r.PlanId,
             planName: r.PlanName,
             features: parseDbJson(r.Features),
+            joiningFees:r.JoiningFee,
+            securityDeposit:r.SecurityDeposit,
             requiredDocuments: parseDbJson<string[]>(r.RequiredDocuments) || [],
             createdAt: r.CreatedAt,
             updatedAt: r.UpdatedAt,
@@ -117,12 +123,14 @@ export async function POST(req: NextRequest) {
         const insertReq = new sql.Request(pool)
             .input("PlanName", sql.NVarChar(100), body.planName)
             .input("Features", sql.NVarChar(sql.MAX), featuresJson)
+            .input("JoiningFee", sql.Decimal(10,2), body.joiningFees)
+            .input("SecurityDeposit", sql.Decimal(10,2), body.securityDeposit)
             .input("RequiredDocuments", sql.NVarChar(sql.MAX), docsJson);
 
         const result = await insertReq.query<PlanRow>(`
-      INSERT INTO dbo.Plans (PlanName, Features, RequiredDocuments)
-      OUTPUT INSERTED.PlanId, INSERTED.PlanName, INSERTED.Features, INSERTED.RequiredDocuments, INSERTED.CreatedAt, INSERTED.UpdatedAt
-      VALUES (@PlanName, @Features, @RequiredDocuments);
+      INSERT INTO dbo.Plans (PlanName, Features, RequiredDocuments, JoiningFee, SecurityDeposit)
+      OUTPUT INSERTED.PlanId, INSERTED.PlanName, INSERTED.Features, INSERTED.RequiredDocuments,  INSERTED.JoiningFee, INSERTED.SecurityDeposit, INSERTED.CreatedAt, INSERTED.UpdatedAt
+      VALUES (@PlanName, @Features, @RequiredDocuments,  @JoiningFee, @SecurityDeposit);
     `);
 
         const row = result.recordset[0];
@@ -133,6 +141,8 @@ export async function POST(req: NextRequest) {
                 planId: row.PlanId,
                 planName: row.PlanName,
                 features: parseDbJson(row.Features),
+                joiningFees: row.JoiningFee,
+                securityDeposit: row.SecurityDeposit,
                 requiredDocuments: parseDbJson<string[]>(row.RequiredDocuments) || [],
                 createdAt: row.CreatedAt,
                 updatedAt: row.UpdatedAt,

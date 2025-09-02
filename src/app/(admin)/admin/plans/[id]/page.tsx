@@ -131,10 +131,10 @@ export default function PlanDetailPage() {
                                 </div>
                             </div>
                         </div>
-
-                        <div>
-                            <div className="text-sm text-muted-foreground">Features</div>
-                            <div className="mt-2">
+                        <div className="grid gap-6 md:grid-cols-2">
+                            <div>
+                                <div className="text-sm text-muted-foreground">Features</div>
+                                <div className="mt-2">
                                 {Array.isArray(plan.features) ? (
                                     <ul className="list-disc pl-5 space-y-1">
                                         {plan.features.map((f: any, i: number) => (
@@ -151,8 +151,14 @@ export default function PlanDetailPage() {
                                     <div className="text-sm text-muted-foreground">—</div>
                                 )}
                             </div>
+                            </div>
+                            <div>
+                                <div className="text-sm text-muted-foreground">Joining & Security Deposit</div>
+                                <div className="mt-2">
+                                    <Badge variant="secondary">₹{plan.joiningFees?.toLocaleString("en-IN")}</Badge> & <Badge variant="secondary">₹{plan.securityDeposit?.toLocaleString("en-IN")}</Badge>
+                                </div>
+                            </div>
                         </div>
-
                         <div className="grid gap-6 md:grid-cols-2">
                             <div>
                                 <div className="text-sm text-muted-foreground">Created</div>
@@ -176,6 +182,8 @@ export default function PlanDetailPage() {
                                 planId: plan.planId,
                                 planName: plan.planName,
                                 requiredDocuments: plan.requiredDocuments ?? [],
+                                joiningFees: plan.joiningFees ?? 0,
+                                securityDeposit: plan.securityDeposit ?? 0,
                                 features: plan.features,
                             }}
                             onSuccess={onEdited}

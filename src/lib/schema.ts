@@ -4,6 +4,8 @@ export const PlanSchema = z.object({
     planName: z.string().min(2, 'Plan name must be at least 2 characters'),
     // We'll accept either JSON text or comma-separated values in `featuresText`
     featuresText: z.string().optional().default(''),
+    joiningFees: z.coerce.number().min(0, 'Must be ≥ 0'),
+    securityDeposit: z.coerce.number().min(0, 'Must be ≥ 0'),
     requiredDocuments: z.array(z.string()).min(0),
 });
 export const VehicleFormSchema = z.object({

@@ -80,7 +80,7 @@ export default function VehicleDetailPage() {
         <div className="space-y-6">
             <PageHeader
                 title={`${vehicle.model} (${vehicle.uniqueCode})`}
-                description={`Vehicle #${vehicle.vehicleId} — manage details, status, and specifications.`}
+                description={`Vehicle #${vehicle.id} — manage details, status, and specifications.`}
             >
                 <div className="flex items-center gap-2">
                     <Button variant="outline" asChild>

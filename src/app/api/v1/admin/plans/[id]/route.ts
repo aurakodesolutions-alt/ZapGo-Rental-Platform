@@ -11,12 +11,16 @@ const PlanUpdateSchema = z.object({
     planName: z.string().min(2).optional(),
     requiredDocuments: z.array(z.string()).optional(),
     features: z.unknown().optional(),
+    joiningFees: z.coerce.number().min(0, 'Must be ≥ 0'),
+    securityDeposit: z.coerce.number().min(0, 'Must be ≥ 0')
 });
 
 type PlanRow = {
     PlanId: number;
     PlanName: string;
     Features: string | null;
+    JoiningFee: number | 0;
+    SecurityDeposit: number | 0;
     RequiredDocuments: string | null;
     CreatedAt: string;
     UpdatedAt: string;
@@ -43,7 +47,7 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
         const pool = await getConnection();
         const res = await new sql.Request(pool)
             .input("PlanId", sql.Int, id)
-            .query<PlanRow>(`SELECT PlanId, PlanName, Features, RequiredDocuments, CreatedAt, UpdatedAt
+            .query<PlanRow>(`SELECT PlanId, PlanName, Features, RequiredDocuments, JoiningFee, SecurityDeposit, CreatedAt, UpdatedAt
                        FROM dbo.Plans WHERE PlanId = @PlanId`);
 
         if (res.recordset.length === 0) {
@@ -57,6 +61,8 @@ export async function GET(_req: NextRequest, props: { params: Promise<{ id: stri
                 planId: row.PlanId,
                 planName: row.PlanName,
                 features: parseDbJson(row.Features),
+                joiningFees: row.JoiningFee,
+                securityDeposit: row.SecurityDeposit,
                 requiredDocuments: parseDbJson<string[]>(row.RequiredDocuments) || [],
                 createdAt: row.CreatedAt,
                 updatedAt: row.UpdatedAt,
@@ -120,7 +126,14 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
             sets.push("RequiredDocuments = @RequiredDocuments");
             reqUpd.input("RequiredDocuments", sql.NVarChar(sql.MAX), docsJson);
         }
-
+        if(body.joiningFees > 0) {
+            sets.push("JoiningFee = @JoiningFee");
+            reqUpd.input("JoiningFee", sql.Decimal(10,2), body.joiningFees);
+        }
+        if(body.securityDeposit > 0) {
+            sets.push("SecurityDeposit = @SecurityDeposit");
+            reqUpd.input("SecurityDeposit", sql.Decimal(10,2), body.securityDeposit);
+        }
         if (sets.length === 0) {
             return NextResponse.json({ ok: true, data: null }); // nothing to update
         }
@@ -137,7 +150,7 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
         const select = await new sql.Request(pool)
             .input("PlanId", sql.Int, id)
             .query<PlanRow>(`
-                SELECT PlanId, PlanName, Features, RequiredDocuments, CreatedAt, UpdatedAt
+                SELECT PlanId, PlanName, Features, RequiredDocuments, JoiningFee, SecurityDeposit, CreatedAt, UpdatedAt
                 FROM dbo.Plans
                 WHERE PlanId = @PlanId;
             `);
@@ -150,6 +163,8 @@ export async function PUT(req: NextRequest, props: { params: Promise<{ id: strin
                 planId: row.PlanId,
                 planName: row.PlanName,
                 features: parseDbJson(row.Features),
+                joiningFees: row.JoiningFee,
+                securityDeposit: row.SecurityDeposit,
                 requiredDocuments: parseDbJson<string[]>(row.RequiredDocuments) || [],
                 createdAt: row.CreatedAt,
                 updatedAt: row.UpdatedAt,

@@ -1,120 +1,161 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useBookingWizard } from './booking-provider';
-import { Vehicle } from '@/lib/types';
-import { VehicleCard, VehicleCardSkeleton } from '../cards/vehicle/vehicle-card';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../ui/pagination';
-import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { SearchX } from 'lucide-react';
-import {vehicles as vehicleList} from "@/lib/constants";
-import { toast } from '@/hooks/use-toast';
+import { useMemo, useState } from "react";
+import { useBookingWizard } from "./booking-provider";
+import { Vehicle } from "@/lib/types";
+import { VehicleCard, VehicleCardSkeleton } from "../cards/vehicle/vehicle-card";
+import {
+    Pagination,
+    PaginationContent,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "../ui/pagination";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { SearchX } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { useVehicles } from "@/hooks/public/useVehicles";
 
 interface Step2VehicleProps {
     onNext: () => void;
 }
 
+function toISODate(value?: Date | string | null) {
+    if (!value) return undefined;
+    if (typeof value === "string") return value.slice(0, 10);
+    try {
+        return value.toISOString().slice(0, 10);
+    } catch {
+        return undefined;
+    }
+}
+
 export function Step2_Vehicle({ onNext }: Step2VehicleProps) {
     const { draft, setDraft } = useBookingWizard();
-    const [vehicles, setVehicles] = useState<Vehicle[]>(vehicleList);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
-    const [pagination, setPagination] = useState({
-        page: 1,
-        pageSize: 6,
-        total: 0,
-    });
-    const totalPages = Math.ceil(pagination.total / pagination.pageSize);
+    // pagination (client-side state, server driven total)
+    const [page, setPage] = useState(1);
+    const pageSize = 6;
 
-    // useEffect(() => {
-    //     const fetchVehicles = async () => {
-    //         setIsLoading(true);
-    //         setError(null);
-    //         try {
-    //             const params = new URLSearchParams({
-    //                 page: pagination.page.toString(),
-    //                 pageSize: pagination.pageSize.toString(),
-    //                 sort: 'popular',
-    //                 city: draft.city || 'Siliguri',
-    //             });
-    //
-    //             const response = await fetch(`/api/vehicles?${params.toString()}`);
-    //             if (!response.ok) throw new Error('Failed to fetch vehicles.');
-    //
-    //             const data = await response.json();
-    //             setVehicles(vehicles);
-    //             setPagination(prev => ({ ...prev, total: data.total }));
-    //         } catch (err: any) {
-    //             setError(err.message || 'An unknown error occurred.');
-    //         } finally {
-    //             setIsLoading(false);
-    //         }
-    //     };
-    //
-    //     fetchVehicles();
-    // }, [pagination.page, pagination.pageSize, draft.city]);
+    const from = useMemo(() => toISODate(draft?.dates?.from), [draft?.dates?.from]);
+    const to = useMemo(() => toISODate(draft?.dates?.to), [draft?.dates?.to]);
+    const planId = undefined;
+
+    const {
+        vehicles = [],
+        total = 0,
+        isLoading,
+        error,
+    }: {
+        vehicles: Vehicle[];
+        total: number;
+        isLoading: boolean;
+        error: any;
+    } = useVehicles({ from, to, planId, page, pageSize });
+
+    const totalPages = Math.max(1, Math.ceil((total || 0) / pageSize));
 
     const handlePageChange = (newPage: number) => {
         if (newPage < 1 || newPage > totalPages) return;
-        setPagination(prev => ({ ...prev, page: newPage }));
+        setPage(newPage);
+        // SWR will re-fetch because the key includes page
     };
 
-    const handleSelectVehicle = async (vehicle: Vehicle) => {
-        // TODO: Implement inventory hold
+    const handleSelectVehicle = (vehicle: Vehicle) => {
+        // If you add inventory hold later, do it here.
         setDraft({ vehicle });
-        toast({ title: "Scooter Selected!", description: `${vehicle.name} has been added to your booking.`})
+        toast({
+            title: "Scooter Selected!",
+            description: `${vehicle.model} has been added to your booking.`,
+        });
         onNext();
-    }
+    };
 
     return (
         <div className="space-y-8">
             <div>
                 <h1 className="text-3xl font-bold">Choose Your Scooter</h1>
-                <p className="text-muted-foreground">Select from our available fleet in {draft.city || 'Siliguri'}.</p>
+                <p className="text-muted-foreground">
+                    Select from our available fleet in {draft.city || "Siliguri"}.
+                </p>
             </div>
 
             {isLoading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-                    {[...Array(3)].map((_, i) => <VehicleCardSkeleton key={i} />)}
+                    {[...Array(6)].map((_, i) => (
+                        <VehicleCardSkeleton key={i} />
+                    ))}
                 </div>
             ) : error ? (
                 <Alert variant="destructive" className="mt-8">
                     <AlertTitle>Error</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
+                    <AlertDescription>
+                        {error?.message || "Failed to load vehicles."}
+                    </AlertDescription>
                 </Alert>
-            ) : vehicles.length === 0 ? (
+            ) : (vehicles?.length || 0) === 0 ? (
                 <Alert className="mt-8">
                     <SearchX className="h-4 w-4" />
                     <AlertTitle>No Vehicles Found</AlertTitle>
                     <AlertDescription>
-                        We couldn't find any vehicles matching your criteria for {draft.city}. Try adjusting your filters or changing city.
+                        We couldn't find any vehicles matching your criteria for {draft.city}.
+                        Try adjusting your dates or plan.
                     </AlertDescription>
                 </Alert>
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-                        {vehicles.map(vehicle => (
-                            <div key={vehicle.id} onClick={() => handleSelectVehicle(vehicle)} className="cursor-pointer">
-                                <VehicleCard vehicle={vehicle} />
-                            </div>
-                        ))}
+                        {vehicles
+                            // optional: avoid showing out-of-stock if the hook returns `remaining`
+                            .filter((v: any) => (typeof (v as any).remaining === "number" ? (v as any).remaining > 0 : true))
+                            .map((vehicle) => (
+                                <div
+                                    key={vehicle.id}
+                                    onClick={() => handleSelectVehicle(vehicle)}
+                                    className="cursor-pointer"
+                                >
+                                    <VehicleCard vehicle={vehicle} />
+                                </div>
+                            ))}
                     </div>
+
                     {totalPages > 1 && (
                         <Pagination className="mt-12">
                             <PaginationContent>
                                 <PaginationItem>
-                                    <PaginationPrevious href="#" onClick={(e) => { e.preventDefault(); handlePageChange(pagination.page - 1)}} aria-disabled={pagination.page <= 1} />
+                                    <PaginationPrevious
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handlePageChange(page - 1);
+                                        }}
+                                        aria-disabled={page <= 1}
+                                    />
                                 </PaginationItem>
                                 {[...Array(totalPages)].map((_, i) => (
                                     <PaginationItem key={i}>
-                                        <PaginationLink href="#" onClick={(e) => { e.preventDefault(); handlePageChange(i + 1)}} isActive={pagination.page === i + 1}>
+                                        <PaginationLink
+                                            href="#"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                handlePageChange(i + 1);
+                                            }}
+                                            isActive={page === i + 1}
+                                        >
                                             {i + 1}
                                         </PaginationLink>
                                     </PaginationItem>
                                 ))}
                                 <PaginationItem>
-                                    <PaginationNext href="#" onClick={(e) => { e.preventDefault(); handlePageChange(pagination.page + 1)}} aria-disabled={pagination.page >= totalPages}/>
+                                    <PaginationNext
+                                        href="#"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            handlePageChange(page + 1);
+                                        }}
+                                        aria-disabled={page >= totalPages}
+                                    />
                                 </PaginationItem>
                             </PaginationContent>
                         </Pagination>

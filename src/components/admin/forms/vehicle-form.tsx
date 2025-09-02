@@ -33,7 +33,7 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
 
     const isEdit = !!vehicle;
     const { create } = useVehicles();
-    const { update } = useVehicle(vehicle?.vehicleId);
+    const { update } = useVehicle(vehicle?.id);
 
     // --- Plans from DB
     const { plans, isLoading: plansLoading } = usePlans();

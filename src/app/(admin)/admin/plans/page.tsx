@@ -79,6 +79,8 @@ export default function PlansPage() {
                                     <TableHead className="w-[220px]">Plan</TableHead>
                                     <TableHead>Required Documents</TableHead>
                                     <TableHead className="hidden md:table-cell">Features</TableHead>
+                                    <TableHead>Joining Fees</TableHead>
+                                    <TableHead>Security Deposit</TableHead>
                                     <TableHead className="hidden lg:table-cell">Updated</TableHead>
                                     <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
@@ -87,6 +89,8 @@ export default function PlansPage() {
                             <TableBody>
                                 {rows.map((plan) => {
                                     const docs = plan.requiredDocuments || [];
+                                    const joiningFees = plan.joiningFees || 0;
+                                    const securityDeposit = plan.securityDeposit || 0;
                                     const featsCount = Array.isArray(plan.features)
                                         ? plan.features.length
                                         : typeof plan.features === 'object' && plan.features !== null
@@ -127,7 +131,28 @@ export default function PlansPage() {
                                                     <span className="text-muted-foreground">—</span>
                                                 )}
                                             </TableCell>
-
+                                            <TableCell>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {joiningFees === 0 ? (
+                                                        <Badge variant="outline">0</Badge>
+                                                    ) : (
+                                                            <Badge key={plan.planName} variant="secondary">
+                                                                ₹ {joiningFees.toLocaleString("en-IN")}
+                                                            </Badge>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {securityDeposit === 0 ? (
+                                                        <Badge variant="outline">0</Badge>
+                                                    ) : (
+                                                        <Badge key={plan.planName} variant="secondary">
+                                                            ₹ {securityDeposit.toLocaleString("en-IN")}
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                            </TableCell>
                                             <TableCell className="hidden lg:table-cell">
                                                 <span className="text-muted-foreground">{formatDate(plan.updatedAt)}</span>
                                             </TableCell>

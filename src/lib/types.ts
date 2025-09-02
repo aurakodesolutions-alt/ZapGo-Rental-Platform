@@ -10,6 +10,8 @@ export interface Rider {
     phone: string;
     email: string;
 
+    passwordHash: string;
+
     createdAtUtc: string; // ISO date string
 
     // Nested KYC (optional if not yet submitted)
@@ -51,6 +53,7 @@ export type RiderCreateInput = {
     fullName: string;
     phone: string;
     email: string;
+    password: string;
     /** Optional: include if KYC is being captured at creation */
     kyc?: RiderKycInput;
 };
@@ -95,6 +98,8 @@ export interface Plan {
     planName: string;
     features?: any;              // stored as JSON in DB, so use `any` or define a type
     requiredDocuments?: string[]; // JSON array (e.g. ["Aadhaar", "PAN", "DL"])
+    joiningFees:number;
+    securityDeposit: number;
     createdAt: string;           // ISO date string
     updatedAt: string;           // ISO date string
 }
@@ -110,7 +115,7 @@ export type PlanUpdateInput = Partial<PlanCreateInput>;
 export type VehicleStatus = "Available" | "Rented";
 
 export interface Vehicle {
-    vehicleId: number;
+    id: number;
 
     // Relations
     planId: number;
@@ -272,14 +277,19 @@ export interface WizardBookingDraft {
     dates?: DateRange;
     city?: string;
     vehicle?: Vehicle;
-    plan?: Plan;
+    planId?: number;
+    planName: string | undefined;
+    joiningFee?: number | null;
+    deposit?: number | null;
     holdId?: string;
     holdExpiresAt?: number;
     contact?: { fullName: string; phone: string; email: string };
+    accountPassword?: string;
     kyc?: { aadhaar: string; pan: string; dl?: string };
     termsAccepted?: boolean;
     bookingId?: string;
     bookingCode?: string;
+    cashfree?:any;
 }
 
 export type PayMethod = 'cash' | 'upi' | 'card' | 'bank' | 'online';
