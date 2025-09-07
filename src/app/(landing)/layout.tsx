@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import {ThemeProvider} from "@/components/theme-provider";
 import {TopNoticeBar} from "@/components/landing/top-notice-bar";
 import AuthProvider from "@/lib/auth/auth-provider";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:9002';
@@ -168,7 +169,9 @@ export default function RootLayout({
             <div className="relative flex min-h-screen flex-col">
                 <TopNoticeBar />
             <SiteHeader />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1">
+                {children}
+            </main>
             <SiteFooter />
             <MobileCta />
             </div>
@@ -176,6 +179,7 @@ export default function RootLayout({
         </ThemeProvider>
         </AuthProvider>
         <Toaster />
+        <SpeedInsights />
         <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
         </body>
         </html>
