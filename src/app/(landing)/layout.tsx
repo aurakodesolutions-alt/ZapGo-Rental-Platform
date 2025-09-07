@@ -11,6 +11,7 @@ import { TopNoticeBar } from "@/components/landing/top-notice-bar";
 import AuthProvider from "@/lib/auth/auth-provider";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import FloatingCta from "@/components/floating-cta";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:9002";
 
@@ -174,6 +175,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <SiteHeader />
                     <main className="flex-1">{children}</main>
                     <SiteFooter />
+                    <FloatingCta variant={"green"} />
                     {/*<MobileCta />*/}
                 </div>
                 <Toaster />
