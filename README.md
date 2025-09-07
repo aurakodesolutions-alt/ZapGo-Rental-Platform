@@ -1,21 +1,85 @@
-# **App Name**: ZapGo
 
-## Core Features:
+<p align="center">
+	<img src="public/logo.png" alt="ZapGo Logo" width="120" />
+</p>
 
-- Landing Page: Landing page with key information, pricing (fetched from API), FAQs and contact details.
-- Booking Wizard: Booking wizard with step-by-step flow for selecting dates, vehicle, and entering rider details.
-- Booking Status Page: Public booking status page displaying booking information and a QR code for easy access.
-- Availability Calendar: Calendar view showing available scooters for different dates.
-- Booking Tracker: Form to enter phone number and code to navigate to the booking status page.
-- PWA Support: PWA (Progressive Web App) functionality, allowing users to install the app on their devices.
+# 🚀 ZapGo – Electric Scooter Rental Platform
 
-## Style Guidelines:
+Welcome to **ZapGo**, the next-generation electric scooter rental platform designed for seamless, secure, and smart urban mobility.
 
-- Primary color: A vibrant blue (#007BFF), reflecting trust and reliability.
-- Background color: Light gray (#F8FAFC), for a clean and modern feel.
-- Accent color: A bright lime green (#32CD32) to highlight secondary actions.
-- Headings font: 'Poppins' (sans-serif) for a modern and approachable feel. Note: currently only Google Fonts are supported.
-- Body font: 'Inter' (sans-serif) for readability and clean presentation. Note: currently only Google Fonts are supported.
-- Numbers font: 'Roboto Mono' (monospace) for displaying codes and IDs. Note: currently only Google Fonts are supported.
-- Mobile-first design with a sticky bottom bar CTA on mobile for "Book Now" action.
-- Cards with rounded corners (rounded-2xl) and subtle shadows (shadow-md) for content containers.
+---
+
+## 🌟 Features
+
+- **Modern Landing Page**: Engaging, mobile-first design with dynamic pricing, FAQs, and contact info.
+- **Booking Wizard**: Step-by-step flow for selecting dates, vehicles, plans, and entering rider details.
+- **Real-Time Availability**: Calendar view to check and book available scooters instantly.
+- **Booking Status & Tracker**: Public status page with QR code, plus tracker for quick access using phone/code.
+- **Admin Dashboard**: Manage vehicles, plans, riders, and bookings with analytics and charts.
+- **KYC & Secure Payments**: Integrated document upload, KYC checks, and payment gateway support.
+- **PWA Support**: Installable as a Progressive Web App for a native-like experience.
+- **SEO & Performance**: Optimized for Core Web Vitals, accessibility, and search engine ranking.
+- **24/7 Support**: Built-in contact and support modules for instant help.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework:** Next.js 14 (App Router, TypeScript)
+- **Styling:** Tailwind CSS, custom themes
+- **State Management:** React Context, hooks
+- **Validation:** Zod schemas
+- **Database/API:** (Pluggable, e.g., MSSQL, RESTful APIs)
+- **Auth:** Secure authentication & role-based access
+- **CI/CD:** Ready for Vercel/Netlify deployment
+
+---
+
+## 🚦 Quick Start
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Run the development server
+npm run dev
+
+# 3. Open http://localhost:3000 in your browser
+```
+
+---
+
+## 🎨 Design System
+
+- **Primary Color:** #007BFF (Blue – trust & reliability)
+- **Accent Color:** #32CD32 (Lime Green – highlights & CTAs)
+- **Background:** #F8FAFC (Light Gray – clean, modern)
+- **Fonts:**
+	- Headings: Poppins
+	- Body: Inter
+	- Codes/IDs: Roboto Mono
+- **UI:** Mobile-first, rounded cards, sticky bottom bar CTA, subtle shadows
+
+---
+
+## 📦 Folder Structure
+
+```text
+src/
+	app/           # Next.js app routes (landing, admin, api, etc.)
+	components/    # Reusable UI and feature components
+	lib/           # Utilities, constants, schemas
+	public/        # Static assets (images, icons, manifest)
+```
+
+---
+
+## 🤝 Contributing
+
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
