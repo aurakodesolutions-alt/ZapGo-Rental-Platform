@@ -5,10 +5,8 @@ import { site } from "@/lib/seo";
 import { HeroSlider } from "@/components/landing/hero-slider";               // ← new (below)
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { Plans } from "@/components/landing/plans";
-import { Pricing } from "@/components/landing/pricing";
 import { TrustAndBenefits } from "@/components/landing/trust-and-benefits";
 import { Faq } from "@/components/landing/faq";
-import { MobileBottomBar } from "@/components/landing/mobile-bottom-bar";
 import FeaturedVehicles from "@/components/landing/featured-vehicles";
 
 export default function Home() {

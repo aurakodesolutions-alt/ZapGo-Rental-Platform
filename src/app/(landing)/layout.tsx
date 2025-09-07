@@ -3,7 +3,7 @@ import { Inter, Poppins, Roboto_Mono } from "next/font/google";
 import "../globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { MobileCta } from "@/components/landing/mobile-cta";
+// import { MobileCta } from "@/components/landing/mobile-cta";
 import { Toaster } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -174,7 +174,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <SiteHeader />
                     <main className="flex-1">{children}</main>
                     <SiteFooter />
-                    <MobileCta />
+                    {/*<MobileCta />*/}
                 </div>
                 <Toaster />
             </ThemeProvider>
