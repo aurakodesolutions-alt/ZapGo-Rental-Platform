@@ -1,70 +1,82 @@
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
-import {
-  features,
-  howItWorksSteps,
-  pricingPlans,
-  testimonials,
-  faqItems,
-} from '@/lib/constants';
-import { cn } from '@/lib/utils';
-import { CheckCircle, Zap, BatteryCharging, MapPin, ShieldCheck, ArrowRight } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import {HeroSlider} from "@/components/landing/hero-slider";
-import {HowItWorks} from "@/components/landing/how-it-works";
-import {Plans} from "@/components/landing/plans";
-import {Pricing} from "@/components/landing/pricing";
-import {TrustAndBenefits} from "@/components/landing/trust-and-benefits";
-import {Faq} from "@/components/landing/faq";
-import {Suspense} from "react";
-import {MobileBottomBar} from "@/components/landing/mobile-bottom-bar";
+// src/app/page.tsx
+import Script from "next/script";
+import { site } from "@/lib/seo";
 
-const iconMap: { [key: string]: React.ElementType } = {
-  Zap,
-  BatteryCharging,
-  MapPin,
-  ShieldCheck,
-};
-
+import { HeroSlider } from "@/components/landing/hero-slider";               // ← new (below)
+import { HowItWorks } from "@/components/landing/how-it-works";
+import { Plans } from "@/components/landing/plans";
+import { Pricing } from "@/components/landing/pricing";
+import { TrustAndBenefits } from "@/components/landing/trust-and-benefits";
+import { Faq } from "@/components/landing/faq";
+import { MobileBottomBar } from "@/components/landing/mobile-bottom-bar";
 
 export default function Home() {
-  return (
-      <div className="flex flex-col overflow-hidden sm:overflow-hidden">
-        {/* Hero Section */}
-        <HeroSlider />
-        {/* Features Section */}
-        <HowItWorks />
+    const orgJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: site.name,
+        url: site.url,
+        logo: `${site.url}/logo.png`,
+        email: site.email,
+        telephone: site.phone,
+        address: {
+            "@type": "PostalAddress",
+            streetAddress: site.address.street,
+            addressLocality: site.address.locality,
+            addressRegion: site.address.region,
+            postalCode: site.address.postalCode,
+            addressCountry: site.address.country,
+        },
+    };
 
-        {/* Pricing Section */}
-        <Plans />
-        <Pricing />
+    const productJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: "Electric Scooter Rental",
+        brand: site.name,
+        aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", reviewCount: "120" },
+        offers: {
+            "@type": "AggregateOffer",
+            priceCurrency: "INR",
+            lowPrice: "199",
+            highPrice: "399",
+            offerCount: "2",
+            url: `${site.url}/book`,
+        },
+    };
 
-        {/* Testimonials Section */}
-        <TrustAndBenefits/>
+    return (
+        <main role="main">
+            {/* 1) LCP-friendly hero with priority image */}
+            <HeroSlider />
 
-        {/* FAQ Section */}
-        <Faq />
+            {/* 2) Sections with proper landmarks/headings */}
+            <section aria-labelledby="how-heading">
+                <HowItWorks />
+            </section>
 
-        {/* Final CTA */}
-          <Suspense fallback={null}>
-              <MobileBottomBar />
-          </Suspense>
-      </div>
-  );
+            <section aria-labelledby="plans-heading">
+                <Plans />
+            </section>
+
+            {/*<section aria-labelledby="pricing-heading">*/}
+            {/*    <Pricing />*/}
+            {/*</section>*/}
+
+            <section aria-labelledby="trust-heading">
+                <TrustAndBenefits />
+            </section>
+
+            {/* Keep your existing FAQ + mobile CTA */}
+            <section aria-labelledby="faq-heading">
+                <Faq />
+            </section>
+
+            <MobileBottomBar />
+
+            {/* JSON-LD (helps rich results) */}
+            <Script id="ld-org" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
+            <Script id="ld-product" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
+        </main>
+    );
 }
