@@ -139,7 +139,7 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function AdminLoginPage() {
     return(
-        <Suspense>
+        <Suspense fallback={null}>
             <AdminLogin />
         </Suspense>
     )

@@ -1,17 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, CheckCircle, IndianRupee } from "lucide-react";
-import { Confetti } from "./confetti";
+
+type Mode = "sandbox" | "production";
 
 interface PaymentModalProps {
     isOpen: boolean;
@@ -19,6 +15,31 @@ interface PaymentModalProps {
     onSuccess: () => void;
     planLabel: string;
     amount: number;
+    paymentSessionId?: string;
+    mode?: Mode;
+}
+
+declare global {
+    interface Window {
+        Cashfree?: any;
+    }
+}
+
+async function loadCashfree(mode: Mode) {
+    const src =
+        mode === "production"
+            ? "https://sdk.cashfree.com/js/ui/2.0.0/cashfree.prod.js"
+            : "https://sdk.cashfree.com/js/v3/cashfree.js";
+    if (window.Cashfree) return window.Cashfree;
+    await new Promise<void>((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = src;
+        s.async = true;
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error("Failed to load Cashfree SDK"));
+        document.head.appendChild(s);
+    });
+    return window.Cashfree;
 }
 
 export function PaymentModal({
@@ -27,93 +48,110 @@ export function PaymentModal({
                                  onSuccess,
                                  planLabel,
                                  amount,
+                                 paymentSessionId,
+                                 mode = "sandbox",
                              }: PaymentModalProps) {
-    const [paymentState, setPaymentState] = useState<"processing" | "success">("processing");
+    const [state, setState] = useState<"idle" | "processing" | "success" | "error">("idle");
+    const containerRef = useRef<HTMLDivElement>(null);
+    const cleanupRef = useRef<() => void>(() => {});
 
     useEffect(() => {
-        if (isOpen) {
-            setPaymentState("processing");
-
-            // TODO (real integration):
-            //   1) Load Cashfree JS
-            //   2) const { paymentSessionId } = draft.cashfree
-            //   3) window.Cashfree?.checkout({ paymentSessionId, ... })
-            //   4) On success callback -> setPaymentState("success")
-
-            // Simulate 3 seconds processing for now
-            const timer = setTimeout(() => setPaymentState("success"), 1800);
-            return () => clearTimeout(timer);
+        if (!isOpen) {
+            setState("idle");
+            cleanupRef.current?.();
+            return;
         }
-    }, [isOpen]);
+        if (!paymentSessionId) {
+            setState("error");
+            return;
+        }
 
-    const handleSuccess = () => onSuccess();
+        let destroyed = false;
+        setState("processing");
+
+        (async () => {
+            try {
+                const Cashfree = await loadCashfree(mode);
+
+                // Prefer Drop-in if available
+                if (Cashfree?.initialiseDropin) {
+                    const drp = Cashfree.initialiseDropin(containerRef.current!, {
+                        orderToken: paymentSessionId,
+                        onSuccess: (_data: any) => {
+                            if (!destroyed) setState("success");
+                        },
+                        onFailure: (err: any) => {
+                            console.error("Cashfree failure", err);
+                            if (!destroyed) setState("error");
+                        },
+                        components: ["order-details", "card", "netbanking", "upi", "paylater", "wallet"],
+                        checkout: {
+                            theme: { color: "#16a34a" },
+                        },
+                    });
+                    cleanupRef.current = () => drp?.destroy?.();
+                } else {
+                    // Fallback to classic checkout()
+                    const cf = new Cashfree({ mode });
+                    cf.checkout({
+                        paymentSessionId,
+                        redirectTarget: "_self",
+                        onSuccess: () => !destroyed && setState("success"),
+                        onFailure: () => !destroyed && setState("error"),
+                    });
+                    // classic checkout handles its own UI; nothing to mount
+                    cleanupRef.current = () => {};
+                }
+            } catch (e) {
+                console.error(e);
+                if (!destroyed) setState("error");
+            }
+        })();
+
+        return () => {
+            destroyed = true;
+            cleanupRef.current?.();
+        };
+    }, [isOpen, paymentSessionId, mode]);
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent
-                className="sm:max-w-[425px] p-0"
-                onPointerDownOutside={(e) => e.preventDefault()}
-            >
-                {paymentState === "success" && <Confetti />}
-                <div className="relative p-6">
-                    <DialogHeader className="text-left">
-                        <div className="flex items-center justify-between mb-4">
-                            {/* Keep Razorpay image if your next.config images allow it; otherwise replace with a static /cashfree.svg in /public */}
-                            <Image
-                                src="https://cdn.cashfree.com/assets/cf-logo.svg"
-                                alt="Cashfree Logo"
-                                width={120}
-                                height={26}
-                            />
-                            <span className="text-sm font-semibold text-muted-foreground">ZapGo Rental</span>
+            <DialogContent className="sm:max-w-[520px]">
+                <DialogHeader className="text-left">
+                    <DialogTitle>Pay with Cashfree</DialogTitle>
+                    <DialogDescription>{planLabel}</DialogDescription>
+                </DialogHeader>
+
+                <div className="flex flex-col items-center text-center gap-3">
+                    <p className="text-2xl font-bold flex items-center">
+                        <IndianRupee className="h-6 w-6 mr-1" />
+                        {Number(amount).toLocaleString("en-IN")}
+                    </p>
+
+                    {state === "processing" && (
+                        <div className="flex items-center text-muted-foreground">
+                            <Loader2 className="h-5 w-5 animate-spin mr-2" /> Opening Cashfree checkout…
                         </div>
-
-                        {paymentState === "processing" ? (
-                            <>
-                                <DialogTitle>Processing Payment</DialogTitle>
-                                <DialogDescription>
-                                    Please wait while we securely process your payment. Do not close this window.
-                                </DialogDescription>
-                            </>
-                        ) : (
-                            <>
-                                <DialogTitle>Payment Successful!</DialogTitle>
-                                <DialogDescription>
-                                    Your payment has been processed. Finalizing your booking...
-                                </DialogDescription>
-                            </>
-                        )}
-                    </DialogHeader>
-
-                    <div className="my-8 flex flex-col items-center justify-center text-center">
-                        {paymentState === "processing" ? (
-                            <>
-                                <Loader2 className="h-16 w-16 animate-spin text-primary" />
-                                <p className="mt-4 text-2xl font-bold flex items-center">
-                                    <IndianRupee className="h-6 w-6 mr-1" /> {Number(amount).toLocaleString("en-IN")}
-                                </p>
-                                <p className="text-muted-foreground">{planLabel}</p>
-                            </>
-                        ) : (
-                            <>
-                                <CheckCircle className="h-16 w-16 text-green-500" />
-                                <p className="mt-4 text-2xl font-bold flex items-center">
-                                    <IndianRupee className="h-6 w-6 mr-1" /> {Number(amount).toLocaleString("en-IN")} Paid
-                                </p>
-                            </>
-                        )}
-                    </div>
-
-                    {paymentState === "success" && (
-                        <Button onClick={handleSuccess} className="w-full">
-                            Confirm Booking
-                        </Button>
                     )}
-
-                    <div className="text-xs text-muted-foreground mt-6 text-center">
-                        This is a simulated payment for testing. Integrate Cashfree Checkout using the paymentSessionId for live flows.
-                    </div>
+                    {state === "success" && (
+                        <div className="flex items-center text-green-600">
+                            <CheckCircle className="h-6 w-6 mr-2" />
+                            Payment Successful
+                        </div>
+                    )}
+                    {state === "error" && (
+                        <div className="text-destructive">Payment failed to start. Please try again.</div>
+                    )}
                 </div>
+
+                {/* Drop-in container (mounted only when using initialiseDropin) */}
+                <div ref={containerRef} />
+
+                {state === "success" && (
+                    <Button className="w-full" onClick={onSuccess}>
+                        Confirm Booking
+                    </Button>
+                )}
             </DialogContent>
         </Dialog>
     );

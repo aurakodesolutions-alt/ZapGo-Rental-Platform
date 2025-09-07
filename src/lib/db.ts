@@ -7,7 +7,7 @@ const config: sql.config = {
     server: process.env.DB_SERVER || "localhost",
     options: {
         encrypt: true,
-        trustServerCertificate: false,
+        trustServerCertificate: true,
     },
     port:1433
 };

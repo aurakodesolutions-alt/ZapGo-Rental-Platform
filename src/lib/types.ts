@@ -285,7 +285,7 @@ export interface WizardBookingDraft {
     holdExpiresAt?: number;
     contact?: { fullName: string; phone: string; email: string };
     accountPassword?: string;
-    kyc?: { aadhaar: string; pan: string; dl?: string };
+    kyc?: { aadhaar: string; aadhaarImageUrl: string; pan: string; panImageUrl: string; dl?: string; dlImageUrl?: string  };
     termsAccepted?: boolean;
     bookingId?: string;
     bookingCode?: string;

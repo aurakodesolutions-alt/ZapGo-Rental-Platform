@@ -30,8 +30,8 @@ const riderSchema = z.object({
     aadhaar: z.string().regex(/^\d{12}$/, "Must be 12 digits"),
     pan: z
         .string()
-        .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "Invalid PAN format")
-        .transform((val) => val.toUpperCase()),
+        .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i, "Invalid PAN format")
+        .transform((v) => v.toUpperCase()),
     dl: z.string().optional(),
 
     aadhaarFile: z.any().optional(),
@@ -106,39 +106,33 @@ export function Step4_Rider({ onNext }: Step4RiderProps) {
                 pan: data.pan,
                 dl: data.dl,
             };
-            const kycRes = await fetch("/api/kyc/validate", {
-                method: "POST",
-                body: JSON.stringify(payload),
-                headers: { "Content-Type": "application/json" },
-            });
-            const kycResult = await kycRes.json();
+            const fd = new FormData();
+            fd.set("riderName", data.fullName);
+            if (data.aadhaarFile) fd.set("aadhaarFile", data.aadhaarFile);
+            if (data.panFile) fd.set("panFile", data.panFile);
+            if (data.dlFile) fd.set("dlFile", data.dlFile);
 
-            if (!kycRes.ok || kycResult.status !== "approved") {
-                toast({
-                    title: "KYC Check Failed",
-                    description: kycResult.message || "Please check your details and try again.",
-                    variant: "destructive",
-                });
+            const up = await fetch("/api/v1/public/riders/upload", { method: "POST", body: fd });
+            const res = await up.json();
+            if (!up.ok || !res?.ok) {
+                toast({ title: "Upload failed", description: res?.error || "Please try again", variant: "destructive" });
                 return;
             }
 
-            // Persist to the wizard draft (including the NEW password field)
             setDraft({
-                contact: {
-                    fullName: data.fullName,
-                    phone: data.phone,
-                    email: data.email,
-                },
+                contact: { fullName: data.fullName, phone: data.phone, email: data.email },
                 kyc: {
-                    aadhaar: data.aadhaar,
-                    pan: data.pan,
-                    dl: data.dl,
-                    // If you want to keep file handles/paths, add them here too.
+                    // dl: data.dl,
+                    aadhaar: payload.aadhaar,
+                    pan: payload.pan,
+                    dl: payload.dl,
+                    aadhaarImageUrl: res.data?.aadhaarFile,
+                    panImageUrl: res.data?.panFile,
+                    dlImageUrl: res.data?.dlFile,
                 },
+                accountPassword: data.password, // from your new password field
                 termsAccepted: data.termsAccepted,
-                accountPassword: data.password, // <-- IMPORTANT
             });
-
             onNext();
         } catch (e: any) {
             toast({

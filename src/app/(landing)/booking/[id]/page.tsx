@@ -1,66 +1,60 @@
+"use client";
 
-'use client';
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import QRCode from "qrcode.react";
+import {
+    Card, CardHeader, CardTitle, CardDescription, CardContent,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Loader2, Calendar, User, Bike } from "lucide-react";
 
-import { Suspense, use } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import QRCode from 'qrcode.react';
-import { Calendar, User, Bike, Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import type { Booking } from '@/lib/types';
+type BookingPublic = {
+    rentalId: number | string;
+    status: string;
+    startDate: string;
+    endDate: string;
+    payableTotal: number;
+    paidTotal: number;
+    balanceDue: number;
+    createdAt?: string;
+    vehicle: { id: number | string; model: string; images: string[]; rentPerDay: number };
+    plan: { id: number; name: string; joiningFee: number; securityDeposit: number };
+    rider: { id: number; name: string; email: string; phone: string };
+};
 
-function BookingStatusComponent({ id }: { id: string }) {
-    const searchParams = useSearchParams();
-    const code = searchParams.get('code');
-    const [booking, setBooking] = useState<Booking | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+export default function BookingDetailsPage() {
+    const { id } = useParams<{ id: string }>();
+    const router = useRouter();
+
+    const [data, setData] = useState<BookingPublic | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [err, setErr] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!id || !code) {
-            setError('Booking ID or code is missing.');
-            setIsLoading(false);
-            return;
-        }
-
-        const fetchBooking = async () => {
-            setIsLoading(true);
-            // In a real app, fetch from:
-            // const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/bookings/${id}/public?code=${code}`);
-            // if (!res.ok) {
-            //   setError('Failed to fetch booking details. Please check your link.');
-            //   setIsLoading(false);
-            //   return;
-            // }
-            // const data: Booking = await res.json();
-
-            // Mock data for demonstration
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            const mockBooking: Booking = {
-                id: id,
-                publicCode: code,
-                startDate: new Date().toISOString(),
-                endDate: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
-                status: 'confirmed',
-                vehicle: {
-                    id: '2',
-                    name: 'ZapGo Pro',
-                    model: 'Power & Comfort',
-                    range: 60,
-                    imageUrl: 'https://placehold.co/400x300.png',
-                },
-                userName: 'Priya Sharma',
-            };
-            setBooking(mockBooking);
-            setError(null);
-            setIsLoading(false);
+        if (!id) return;
+        const run = async () => {
+            setLoading(true);
+            setErr(null);
+            try {
+                const r = await fetch(`/api/v1/public/bookings/${encodeURIComponent(id)}`, { cache: "no-store" });
+                const j = await r.json();
+                if (!r.ok) throw new Error(j?.error || "Failed to load booking");
+                setData(j);
+            } catch (e: any) {
+                setErr(e?.message || "Failed to load booking");
+            } finally {
+                setLoading(false);
+            }
         };
+        run();
+    }, [id]);
 
-        fetchBooking();
-    }, [id, code]);
+    const fmt = (n: number) => Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
 
-    if (isLoading) {
+    if (loading) {
         return (
             <div className="flex justify-center items-center py-20">
                 <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -68,65 +62,102 @@ function BookingStatusComponent({ id }: { id: string }) {
         );
     }
 
-    if (error) {
-        return <p className="text-center text-destructive">{error}</p>;
-    }
-
-    if (!booking) {
-        return <p className="text-center">No booking found.</p>;
+    if (err || !data) {
+        return (
+            <div className="max-w-xl mx-auto p-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Booking</CardTitle>
+                        <CardDescription>ID: {id}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-destructive">{err || "Not found"}</CardContent>
+                </Card>
+            </div>
+        );
     }
 
     return (
-        <Card className="w-full max-w-2xl mx-auto rounded-2xl shadow-md">
-            <CardHeader>
-                <div className="flex justify-between items-start">
+        <div className="container mx-auto py-10 px-4">
+            <Card className="w-full max-w-3xl mx-auto rounded-2xl shadow-md">
+                <CardHeader className="flex justify-between">
                     <div>
-                        <CardTitle className="font-headline text-3xl">Booking Confirmed!</CardTitle>
-                        <CardDescription>Your ride is ready. Here are the details.</CardDescription>
+                        <CardTitle className="text-2xl">Booking Confirmed 🎉</CardTitle>
+                        <CardDescription>Booking ID: {data.rentalId}</CardDescription>
                     </div>
-                    <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'} className="capitalize">
-                        {booking.status}
-                    </Badge>
-                </div>
-            </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                        <User className="h-5 w-5 text-muted-foreground" />
-                        <span>{booking.userName}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Calendar className="h-5 w-5 text-muted-foreground" />
-                        <span>{new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Bike className="h-5 w-5 text-muted-foreground" />
-                        <span>{booking.vehicle.name}</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <p className="font-code text-primary bg-primary/10 px-2 py-1 rounded-md">
-                            Booking ID: {booking.id}
-                        </p>
-                    </div>
-                </div>
-                <div className="flex flex-col items-center justify-center bg-gray-50 p-4 rounded-lg">
-                    <p className="mb-2 font-semibold">Scan to unlock your scooter</p>
-                    <div className="p-2 bg-white rounded-md shadow-sm">
-                        <QRCode value={JSON.stringify({ bookingId: booking.id, code: booking.publicCode })} size={180} />
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
+                    <Badge className="capitalize">{String(data.status || "").toLowerCase()}</Badge>
+                </CardHeader>
 
-export default function BookingStatusPage({ params }: { params: { id: string } }) {
-    const { id } = use(Promise.resolve(params));
-    return (
-        <div className="container mx-auto py-12 px-4">
-            <Suspense fallback={<div className="flex justify-center items-center py-20"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}>
-                <BookingStatusComponent id={id} />
-            </Suspense>
+                <CardContent className="grid md:grid-cols-2 gap-8">
+                    {/* LEFT: facts & costs */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                            <User className="h-5 w-5 text-muted-foreground" />
+                            <span>{data.rider?.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Calendar className="h-5 w-5 text-muted-foreground" />
+                            <span>
+                {new Date(data.startDate).toLocaleDateString()} – {new Date(data.endDate).toLocaleDateString()}
+              </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Bike className="h-5 w-5 text-muted-foreground" />
+                            <span>{data.vehicle?.model}</span>
+                        </div>
+
+                        <div className="mt-6 space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span>Plan</span>
+                                <span className="font-medium">{data.plan?.name}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Joining Fee</span>
+                                <span className="font-medium">₹{fmt(data.plan?.joiningFee)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Security Deposit</span>
+                                <span className="font-medium">₹{fmt(data.plan?.securityDeposit)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Paid</span>
+                                <span className="font-medium">₹{fmt(data.paidTotal)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>Balance</span>
+                                <span className="font-medium">₹{fmt(data.balanceDue)}</span>
+                            </div>
+                            <div className="flex justify-between font-semibold text-primary">
+                                <span>Total</span>
+                                <span>₹{fmt(data.payableTotal)}</span>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-4">
+                            <Button onClick={() => router.push("/dashboard")}>Go to Dashboard</Button>
+                            <Button variant="outline" onClick={() => router.push("/")}>Back to Home</Button>
+                        </div>
+                    </div>
+
+                    {/* RIGHT: image + QR */}
+                    <div className="flex flex-col items-center">
+                        {data.vehicle?.images?.[0] && (
+                            <Image
+                                src={data.vehicle.images[0]}
+                                alt={data.vehicle.model}
+                                width={520}
+                                height={320}
+                                className="rounded-lg object-cover w-full aspect-video"
+                            />
+                        )}
+                        <div className="mt-6 flex flex-col items-center">
+                            <p className="text-sm text-muted-foreground mb-2">Scan to view your booking</p>
+                            <div className="p-2 bg-white rounded-md shadow-sm">
+                                <QRCode value={JSON.stringify({ id: data.rentalId })} size={160} />
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }

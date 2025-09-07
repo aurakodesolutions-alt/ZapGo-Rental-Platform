@@ -55,9 +55,9 @@ const RiderUpdateSchema = z.object({
 });
 
 /* ---------------- GET /riders/:id ---------------- */
-export async function GET(_: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_: NextRequest, props: { params: Promise<{ id: string }> }) {
     try {
-        const { id } = IdSchema.parse({ id: params.id });
+        const id = IdSchema.parse((await (props.params)).id);
         const pool = await getConnection();
 
         const rs = await pool
@@ -83,9 +83,9 @@ export async function GET(_: NextRequest, { params }: { params: { id: string } }
 }
 
 /* ---------------- PUT /riders/:id ---------------- */
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, props: { params: Promise<{ id: string }> }) {
     try {
-        const { id } = IdSchema.parse({ id: params.id });
+        const id = IdSchema.parse((await (props.params)).id);
         const body = RiderUpdateSchema.parse(await req.json());
         const pool = await getConnection();
 
@@ -183,9 +183,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 }
 
 /* ---------------- DELETE /riders/:id ---------------- */
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, props: { params: Promise<{ id: string }> }) {
     try {
-        const id = Number(params.id);
+        const id = Number((await (props.params)).id);
         const pool = await getConnection();
 
         // Delete child then parent (if FK not cascading)

@@ -50,7 +50,7 @@ export function useRider(id?: number | string) {
 
     return {
         rider: (data as Rider | null) ?? null,
-        isLoading: !!shouldFetch && isLoading,
+        isLoading: shouldFetch && isLoading,
         isError: !!error,
         error: error as Error | undefined,
         mutate,

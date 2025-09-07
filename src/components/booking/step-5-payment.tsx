@@ -24,6 +24,7 @@ export function Step5_Payment({ onNext }: { onNext: () => void }) {
     const { draft, setDraft } = useBookingWizard();
     const [paymentOption, setPaymentOption] = useState<PaymentOption>("JOINING_DEPOSIT");
     const [customAmount, setCustomAmount] = useState<number>(0);
+    const [paymentSessionId, setPaymentSessionId] = useState(null);
 
     const [quote, setQuote] = useState<{
         payable: number;
@@ -54,7 +55,7 @@ export function Step5_Payment({ onNext }: { onNext: () => void }) {
             }
             setLoadingQuote(true);
             try {
-                const res = await fetch("/api/public/quote", {
+                const res = await fetch("/api/v1/public/quote", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -110,9 +111,39 @@ export function Step5_Payment({ onNext }: { onNext: () => void }) {
 
         setIsProcessing(true);
         try {
+            const PENDING_KEY = "zapgo_pending_booking";
+
+// Build a minimal server-friendly payload (NO File objects)
+            const pending = {
+                contact: draft.contact,                     // { fullName, phone, email }
+                kyc: {
+                    aadhaar: draft.kyc?.aadhaar,
+                    pan: draft.kyc?.pan,
+                    dl: draft.kyc?.dl,
+                    // if you uploaded images in Step 4, store the URLs:
+                    aadhaarImageUrl: draft.kyc?.aadhaarImageUrl ?? null,
+                    panCardImageUrl: draft.kyc?.panImageUrl ?? null,
+                    drivingLicenseImageUrl: draft.kyc?.dlImageUrl ?? null,
+                },
+                planId: draft!.planId,
+                vehicleId: draft.vehicle!.id,
+                dates: {
+                    from: format(draft.dates!.from!, "yyyy-MM-dd"),
+                    to:   format(draft.dates!.to!,   "yyyy-MM-dd"),
+                },
+                password: draft.accountPassword,            // from Step 4 password field
+                payment: {
+                    option: paymentOption,                   // FULL | JOINING_DEPOSIT | JOINING_DEPOSIT_CUSTOM
+                    amountPaid: quote.payable,                 // from /api/public/quote
+                    customAmount: customAmount ?? 0,
+                },
+            };
+
+            sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+
             // Create Cashfree order (server)
             const orderId = `ORD-${Date.now()}-${vehicleId}`;
-            const res = await fetch("/api/payments/cashfree/order", {
+            const res = await fetch("/api/v1/admin/payments/cashfree/order", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -181,7 +212,7 @@ export function Step5_Payment({ onNext }: { onNext: () => void }) {
                 },
             };
 
-            const confirmRes = await fetch("/api/bookings", {
+            const confirmRes = await fetch("/api/v1/public/bookings", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(bookingPayload),
@@ -356,6 +387,7 @@ export function Step5_Payment({ onNext }: { onNext: () => void }) {
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={onPaymentSuccess}
                 planLabel={draft.planName || `Plan #${planId}`}
+                paymentSessionId={draft?.cashfree?.paymentSessionId}
                 amount={amountToPayNow}
             />
         </>

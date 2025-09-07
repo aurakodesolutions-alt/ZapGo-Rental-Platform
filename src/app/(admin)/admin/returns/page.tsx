@@ -85,7 +85,7 @@ export default function ReturnsPage() {
                         <TableCell className="text-right font-code">{formatINR(rental.balanceDue)}</TableCell>
                         <TableCell className="text-right">
                             <Button variant="outline" size="sm" asChild>
-                                <Link href={`/returns/${rental.id}`}>
+                                <Link href={`/admin/returns/${rental.id}`}>
                                     {rental.status === 'completed' ? 'View' : 'Process'}
                                 </Link>
                             </Button>
