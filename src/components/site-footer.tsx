@@ -129,7 +129,7 @@ export function SiteFooter() {
                             </Link>
                             <span aria-hidden>•</span>
                             <Link
-                                href="/terms"
+                                href="/legal/terms"
                                 className="hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                             >
                                 Terms
