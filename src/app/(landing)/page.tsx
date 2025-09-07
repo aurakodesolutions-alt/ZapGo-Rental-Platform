@@ -77,7 +77,7 @@ export default function Home() {
                 <Faq />
             </section>
 
-            <MobileBottomBar />
+            {/*<MobileBottomBar />*/}
 
             {/* JSON-LD (helps rich results) */}
             <Script id="ld-org" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
