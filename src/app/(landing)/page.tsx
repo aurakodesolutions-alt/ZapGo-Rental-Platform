@@ -9,6 +9,7 @@ import { Pricing } from "@/components/landing/pricing";
 import { TrustAndBenefits } from "@/components/landing/trust-and-benefits";
 import { Faq } from "@/components/landing/faq";
 import { MobileBottomBar } from "@/components/landing/mobile-bottom-bar";
+import FeaturedVehicles from "@/components/landing/featured-vehicles";
 
 export default function Home() {
     const orgJsonLd = {
@@ -53,6 +54,10 @@ export default function Home() {
             {/* 2) Sections with proper landmarks/headings */}
             <section aria-labelledby="how-heading">
                 <HowItWorks />
+            </section>
+
+            <section aria-labelledby="how-heading">
+                <FeaturedVehicles />
             </section>
 
             <section aria-labelledby="plans-heading">

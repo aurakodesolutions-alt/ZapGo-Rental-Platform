@@ -19,7 +19,7 @@ type UiPayment = {
     method: "CASHFREE" | "RAZORPAY" | "UPI" | "CARD" | "NB" | "CASH";
     txnRef?: string | null;
     status: "SUCCESS" | "PENDING" | "FAILED";
-    createdAt: string; // ISO date
+    createdAt: string;
 };
 
 const fetcher = async (url: string) => {
@@ -33,7 +33,6 @@ const fetcher = async (url: string) => {
 const formatINR = (n?: number) =>
     Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
 
-/** Normalize whatever the API returns to UiPayment[] */
 function mapPayments(raw: any): UiPayment[] {
     const src: any[] = Array.isArray(raw?.items) ? raw.items : Array.isArray(raw) ? raw : [];
 
@@ -43,7 +42,8 @@ function mapPayments(raw: any): UiPayment[] {
         if (v === "RAZORPAY") return "RAZORPAY";
         if (v === "UPI") return "UPI";
         if (v === "CARD" || v === "CARDS") return "CARD";
-        if (v === "NB" || v === "NETBANKING" || v === "NET_BANKING" || v === "NETBANK") return "NB";
+        if (v === "NB" || v === "NETBANKING" || v === "NET_BANKING" || v === "NETBANK")
+            return "NB";
         if (v === "CASH") return "CASH";
         return "CASH";
     };
@@ -53,7 +53,6 @@ function mapPayments(raw: any): UiPayment[] {
         if (v === "SUCCESS") return "SUCCESS";
         if (v === "FAILED") return "FAILED";
         return "PENDING";
-        // (Cashfree can also return AUTHORIZED/CAPTURED etc—map as needed)
     };
 
     return src.map((p: any): UiPayment => ({
@@ -66,7 +65,6 @@ function mapPayments(raw: any): UiPayment[] {
         createdAt: String(p.createdAt ?? p.TransactionDate ?? p.CreatedAt ?? ""),
     }));
 }
-
 
 export default function PaymentsTab() {
     const [range, setRange] = useState<"7d" | "30d" | "all">("7d");
@@ -85,37 +83,50 @@ export default function PaymentsTab() {
 
     const { data: raw, isLoading } = useSWR(`/api/v1/rider/payments?${query}`, fetcher);
     const items: UiPayment[] = useMemo(() => mapPayments(raw), [raw]);
-    const totalVisible = items.reduce((sum, p) => sum + (p.status === "SUCCESS" ? p.amount : 0), 0);
+    const totalVisible = items.reduce(
+        (sum, p) => sum + (p.status === "SUCCESS" ? p.amount : 0),
+        0
+    );
 
     return (
         <div className="space-y-4">
             <Card className="rounded-2xl">
-                <CardContent className="p-4 flex items-center justify-between">
+                <CardContent className="flex items-center justify-between p-4">
                     <div className="flex gap-2">
                         <Button
                             variant={range === "7d" ? "default" : "outline"}
-                            onClick={() => { setRange("7d"); setPage(1); }}
+                            onClick={() => {
+                                setRange("7d");
+                                setPage(1);
+                            }}
                             className="rounded-xl"
                         >
                             Last 7 days
                         </Button>
                         <Button
                             variant={range === "30d" ? "default" : "outline"}
-                            onClick={() => { setRange("30d"); setPage(1); }}
+                            onClick={() => {
+                                setRange("30d");
+                                setPage(1);
+                            }}
                             className="rounded-xl"
                         >
                             Last 30 days
                         </Button>
                         <Button
                             variant={range === "all" ? "default" : "outline"}
-                            onClick={() => { setRange("all"); setPage(1); }}
+                            onClick={() => {
+                                setRange("all");
+                                setPage(1);
+                            }}
                             className="rounded-xl"
                         >
                             All
                         </Button>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                        Total received (visible): <span className="font-semibold">₹{formatINR(totalVisible)}</span>
+                        Total received (visible):{" "}
+                        <span className="font-semibold">₹{formatINR(totalVisible)}</span>
                     </div>
                 </CardContent>
             </Card>
@@ -137,7 +148,9 @@ export default function PaymentsTab() {
                             {isLoading ? (
                                 Array.from({ length: 6 }).map((_, i) => (
                                     <TableRow key={i}>
-                                        <TableCell colSpan={6}><Skeleton className="h-10 w-full" /></TableCell>
+                                        <TableCell colSpan={6}>
+                                            <Skeleton className="h-10 w-full" />
+                                        </TableCell>
                                     </TableRow>
                                 ))
                             ) : items.length ? (
@@ -150,21 +163,31 @@ export default function PaymentsTab() {
                                         <TableCell>{p.method}</TableCell>
                                         <TableCell>
                                             <Badge
-                                                variant={p.status === "SUCCESS" ? "default" : p.status === "FAILED" ? "destructive" : "secondary"}
+                                                variant={
+                                                    p.status === "SUCCESS"
+                                                        ? "default"
+                                                        : p.status === "FAILED"
+                                                            ? "destructive"
+                                                            : "secondary"
+                                                }
                                                 className="uppercase"
                                             >
                                                 {p.status}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="font-code text-xs break-all">{p.txnRef || "—"}</TableCell>
+                                        <TableCell className="font-code break-all text-xs">
+                                            {p.txnRef || "—"}
+                                        </TableCell>
                                         <TableCell>
-                                            <a className="text-primary underline" href={`/booking/${p.rentalId}`}>#{p.rentalId}</a>
+                                            <a className="text-primary underline" href={`/booking/${p.rentalId}`}>
+                                                #{p.rentalId}
+                                            </a>
                                         </TableCell>
                                     </TableRow>
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                    <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                                         No payments in this range.
                                     </TableCell>
                                 </TableRow>
@@ -172,9 +195,23 @@ export default function PaymentsTab() {
                         </TableBody>
                     </Table>
                     <Separator />
-                    <div className="flex items-center justify-end p-3 gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
-                        <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)}>Next</Button>
+                    <div className="flex items-center justify-end gap-2 p-3">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            className="rounded-xl"
+                        >
+                            Prev
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setPage((p) => p + 1)}
+                            className="rounded-xl"
+                        >
+                            Next
+                        </Button>
                     </div>
                 </CardContent>
             </Card>

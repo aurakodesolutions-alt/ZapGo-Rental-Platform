@@ -19,10 +19,11 @@ type Kyc = {
     status?: "VERIFIED" | "PENDING" | "REJECTED";
 };
 
-const fetcher = (url: string) => fetch(url).then((r) => {
-    if (!r.ok) throw new Error("Failed");
-    return r.json();
-});
+const fetcher = (url: string) =>
+    fetch(url).then((r) => {
+        if (!r.ok) throw new Error("Failed");
+        return r.json();
+    });
 
 export default function KycTab() {
     const { data, mutate } = useSWR<Kyc>("/api/v1/rider/kyc", fetcher);
@@ -38,12 +39,9 @@ export default function KycTab() {
             if (files.pan) fd.append("panFile", files.pan);
             if (files.dl) fd.append("dlFile", files.dl);
 
-            // Reuse your public/admin upload route if rider one isn’t ready.
             const r = await fetch("/api/v1/rider/kyc/upload", { method: "POST", body: fd });
             const j = await r.json();
             if (!r.ok) throw new Error(j?.error || "Upload failed");
-
-            // Let backend persist URLs → merge + revalidate
             await mutate();
             alert("Documents uploaded.");
         } catch (e: any) {
@@ -69,7 +67,11 @@ export default function KycTab() {
                     ) : null}
                     <Separator />
                     <Label>Upload</Label>
-                    <Input type="file" accept="image/*,application/pdf" onChange={(e) => setFiles((f) => ({ ...f, aadhaar: e.target.files?.[0] }))} />
+                    <Input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => setFiles((f) => ({ ...f, aadhaar: e.target.files?.[0] }))}
+                    />
                 </CardContent>
             </Card>
 
@@ -87,7 +89,11 @@ export default function KycTab() {
                     ) : null}
                     <Separator />
                     <Label>Upload</Label>
-                    <Input type="file" accept="image/*,application/pdf" onChange={(e) => setFiles((f) => ({ ...f, pan: e.target.files?.[0] }))} />
+                    <Input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => setFiles((f) => ({ ...f, pan: e.target.files?.[0] }))}
+                    />
                 </CardContent>
             </Card>
 
@@ -107,10 +113,14 @@ export default function KycTab() {
                     <div className="grid gap-3 sm:grid-cols-2">
                         <div>
                             <Label>Upload</Label>
-                            <Input type="file" accept="image/*,application/pdf" onChange={(e) => setFiles((f) => ({ ...f, dl: e.target.files?.[0] }))} />
+                            <Input
+                                type="file"
+                                accept="image/*,application/pdf"
+                                onChange={(e) => setFiles((f) => ({ ...f, dl: e.target.files?.[0] }))}
+                            />
                         </div>
                         <div className="flex items-end">
-                            <Button disabled={loading} className="rounded-xl w-full" onClick={onUpload}>
+                            <Button disabled={loading} className="w-full rounded-xl" onClick={onUpload}>
                                 {loading ? "Uploading…" : "Upload Documents"}
                             </Button>
                         </div>

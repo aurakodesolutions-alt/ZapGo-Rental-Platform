@@ -16,7 +16,11 @@ type Rider = {
 };
 
 async function postJSON(url: string, { arg }: { arg: any }) {
-    const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(arg) });
+    const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(arg),
+    });
     const j = await r.json();
     if (!r.ok) throw new Error(j?.error || "Failed");
     return j;
@@ -31,8 +35,14 @@ export default function SettingsTab({ rider }: { rider: Rider }) {
     const [next, setNext] = useState("");
     const [confirm, setConfirm] = useState("");
 
-    const { trigger: saveProfile, isMutating: savingProfile } = useSWRMutation("/api/v1/rider/me/update", postJSON);
-    const { trigger: changePassword, isMutating: savingPass } = useSWRMutation("/api/v1/rider/password", postJSON);
+    const { trigger: saveProfile, isMutating: savingProfile } = useSWRMutation(
+        "/api/v1/rider/me/update",
+        postJSON
+    );
+    const { trigger: changePassword, isMutating: savingPass } = useSWRMutation(
+        "/api/v1/rider/password",
+        postJSON
+    );
 
     const onSaveProfile = async () => {
         try {
@@ -50,7 +60,9 @@ export default function SettingsTab({ rider }: { rider: Rider }) {
         }
         try {
             await changePassword({ currentPassword: current, newPassword: next });
-            setCurrent(""); setNext(""); setConfirm("");
+            setCurrent("");
+            setNext("");
+            setConfirm("");
             alert("Password changed");
         } catch (e: any) {
             alert(e.message || "Password change failed");
@@ -65,7 +77,9 @@ export default function SettingsTab({ rider }: { rider: Rider }) {
     return (
         <div className="grid gap-6 md:grid-cols-2">
             <Card className="rounded-2xl">
-                <CardHeader><CardTitle>Contact Info</CardTitle></CardHeader>
+                <CardHeader>
+                    <CardTitle>Contact Info</CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
                         <Label>Full Name</Label>
@@ -86,7 +100,9 @@ export default function SettingsTab({ rider }: { rider: Rider }) {
             </Card>
 
             <Card className="rounded-2xl">
-                <CardHeader><CardTitle>Change Password</CardTitle></CardHeader>
+                <CardHeader>
+                    <CardTitle>Change Password</CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-4">
                     <div>
                         <Label>Current Password</Label>
@@ -100,17 +116,26 @@ export default function SettingsTab({ rider }: { rider: Rider }) {
                         <Label>Confirm New Password</Label>
                         <Input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
                     </div>
-                    <Button className="rounded-xl" variant="secondary" disabled={savingPass} onClick={onSavePassword}>
+                    <Button
+                        className="rounded-xl"
+                        variant="secondary"
+                        disabled={savingPass}
+                        onClick={onSavePassword}
+                    >
                         {savingPass ? "Updating…" : "Update Password"}
                     </Button>
                 </CardContent>
             </Card>
 
             <Card className="rounded-2xl md:col-span-2">
-                <CardHeader><CardTitle>Danger Zone</CardTitle></CardHeader>
+                <CardHeader>
+                    <CardTitle>Danger Zone</CardTitle>
+                </CardHeader>
                 <CardContent>
                     <Separator className="my-3" />
-                    <Button variant="destructive" className="rounded-xl" onClick={onLogout}>Logout</Button>
+                    <Button variant="destructive" className="rounded-xl" onClick={onLogout}>
+                        Logout
+                    </Button>
                 </CardContent>
             </Card>
         </div>

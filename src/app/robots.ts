@@ -1,12 +1,13 @@
-// src/app/robots.ts
 import { site } from "@/lib/seo";
+
 export default function robots() {
     return {
         rules: {
             userAgent: "*",
             allow: "/",
-            disallow: ["/api/"],
+            disallow: ["/api/"], // keep server routes private
         },
         sitemap: `${site.url}/sitemap.xml`,
+        host: site.url,
     };
 }

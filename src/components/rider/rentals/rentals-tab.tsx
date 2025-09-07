@@ -7,7 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-    Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -38,7 +43,6 @@ const fetcher = (url: string) =>
 const formatINR = (n?: number) =>
     Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 0 });
 
-/** Map whatever the API returns into UiRental[] */
 function mapRentals(raw: any): UiRental[] {
     const src: any[] = Array.isArray(raw) ? raw : Array.isArray(raw?.items) ? raw.items : [];
     return src.map((r: any) => {
@@ -85,8 +89,6 @@ export default function RentalsTab() {
     }, [page, q, status]);
 
     const { data: raw, isLoading } = useSWR(url, fetcher);
-
-    // Normalize to what the table needs
     const items: UiRental[] = useMemo(() => mapRentals(raw), [raw]);
 
     return (
@@ -95,19 +97,17 @@ export default function RentalsTab() {
             <Card className="rounded-2xl">
                 <CardContent className="p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="relative w-full sm:w-80">
-                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search vehicle model…"
-                                    className="pl-8"
-                                    value={q}
-                                    onChange={(e) => {
-                                        setQ(e.target.value);
-                                        setPage(1);
-                                    }}
-                                />
-                            </div>
+                        <div className="relative w-full sm:w-80">
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search vehicle model…"
+                                className="pl-8"
+                                value={q}
+                                onChange={(e) => {
+                                    setQ(e.target.value);
+                                    setPage(1);
+                                }}
+                            />
                         </div>
 
                         <div className="flex gap-2">
@@ -119,10 +119,10 @@ export default function RentalsTab() {
                                 }}
                                 className="h-10 rounded-md border bg-background px-3 text-sm"
                             >
-                                <option value="">All Statuses</option>
+                                <option value="">All statuses</option>
                                 <option value="CONFIRMED">Confirmed</option>
                                 <option value="ONGOING">Ongoing</option>
-                                <option value="RETURN_REQUESTED">Return Requested</option>
+                                <option value="RETURN_REQUESTED">Return requested</option>
                                 <option value="COMPLETED">Completed</option>
                                 <option value="CANCELLED">Cancelled</option>
                             </select>
@@ -172,7 +172,9 @@ export default function RentalsTab() {
                                             <div className="flex flex-col">
                                                 <span className="font-medium">{r.vehicle.model}</span>
                                                 {r.vehicle.planName ? (
-                                                    <span className="text-xs text-muted-foreground">{r.vehicle.planName}</span>
+                                                    <span className="text-xs text-muted-foreground">
+                            {r.vehicle.planName}
+                          </span>
                                                 ) : null}
                                             </div>
                                         </TableCell>
@@ -206,7 +208,7 @@ export default function RentalsTab() {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                    <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                                         No rentals found.
                                     </TableCell>
                                 </TableRow>

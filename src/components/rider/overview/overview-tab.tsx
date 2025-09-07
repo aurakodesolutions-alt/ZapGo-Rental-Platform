@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import Image from "next/image";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,16 +26,13 @@ import {
     BadgeAlert,
 } from "lucide-react";
 
-/* ---------- helpers ---------- */
-
 const fetcher = (url: string) =>
     fetch(url).then(async (r) => {
         const txt = await r.text();
         const json = txt ? JSON.parse(txt) : null;
         if (!r.ok) {
             const msg =
-                (json && (json.error || json.message)) ||
-                `Request failed: ${r.status}`;
+                (json && (json.error || json.message)) || `Request failed: ${r.status}`;
             throw new Error(msg);
         }
         return json;
@@ -65,13 +62,15 @@ type UiRental = {
     deposit: number;
     paidTotal: number;
     balanceDue: number;
-    status: "CONFIRMED" | "ONGOING" | "RETURN_REQUESTED" | "COMPLETED" | "CANCELLED";
+    status:
+        | "CONFIRMED"
+        | "ONGOING"
+        | "RETURN_REQUESTED"
+        | "COMPLETED"
+        | "CANCELLED";
 };
 
-/* Map /api/v1/rider/summary -> UiSummary */
 function mapSummary(api: any): UiSummary {
-    // your API example shape:
-    // { activeRental: {...}, stats: {activeRentals, balanceDue, totalPaid}, lastPayment: {...} }
     const s = api?.stats || {};
     const ar = api?.activeRental || null;
     const lp = api?.lastPayment || null;
@@ -89,21 +88,21 @@ function mapSummary(api: any): UiSummary {
     };
 }
 
-/* Map /api/v1/rider/rentals -> { items: UiRental[] } */
 function mapRentals(api: any): { items: UiRental[] } {
-    // your API example (client list) looked like [{ rentalId:"4", status:"ongoing", ... }]
-    // sometimes vehicle.images: ["/path"]
     const source: any[] =
         Array.isArray(api?.items) ? api.items : Array.isArray(api) ? api : [];
 
     const items: UiRental[] = source.map((r: any) => {
         const statusRaw = String(r.status || r.Status || "").toUpperCase();
-        const status: UiRental["status"] =
-            (["CONFIRMED", "ONGOING", "RETURN_REQUESTED", "COMPLETED", "CANCELLED"].includes(
-                statusRaw
-            )
-                ? statusRaw
-                : "CONFIRMED") as UiRental["status"];
+        const status: UiRental["status"] = ([
+            "CONFIRMED",
+            "ONGOING",
+            "RETURN_REQUESTED",
+            "COMPLETED",
+            "CANCELLED",
+        ].includes(statusRaw)
+            ? statusRaw
+            : "CONFIRMED") as UiRental["status"];
 
         const vehicle = r.vehicle || {};
         const images = vehicle.images || r.images || [];
@@ -117,8 +116,7 @@ function mapRentals(api: any): { items: UiRental[] } {
             vehicle: {
                 id: vehicle.id || r.VehicleId,
                 model: vehicle.model || r.Model || "Scooter",
-                planName:
-                    vehicle.planName || r.plan?.name || r.PlanName || undefined,
+                planName: vehicle.planName || r.plan?.name || r.PlanName || undefined,
                 image: firstImage,
             },
             startDate: r.startDate || r.StartDate,
@@ -135,7 +133,6 @@ function mapRentals(api: any): { items: UiRental[] } {
 }
 
 export default function OverviewTab() {
-    // raw shapes from your backend
     const { data: summaryRaw, isLoading: loadingSummary } = useSWR(
         "/api/v1/rider/summary",
         fetcher
@@ -146,7 +143,6 @@ export default function OverviewTab() {
         mutate,
     } = useSWR("/api/v1/rider/rentals?page=1&pageSize=5", fetcher);
 
-    // normalized shapes for the UI
     const summary: UiSummary | undefined = useMemo(
         () => (summaryRaw ? mapSummary(summaryRaw) : undefined),
         [summaryRaw]
@@ -159,13 +155,10 @@ export default function OverviewTab() {
 
     const current = useMemo(
         () =>
-            rentals?.items?.find((r) =>
-                ["ONGOING", "CONFIRMED"].includes(r.status)
-            ),
+            rentals?.items?.find((r) => ["ONGOING", "CONFIRMED"].includes(r.status)),
         [rentals]
     );
 
-    // Dialog state
     const [payOpen, setPayOpen] = useState(false);
     const [extendOpen, setExtendOpen] = useState(false);
     const [returnOpen, setReturnOpen] = useState(false);
@@ -183,10 +176,7 @@ export default function OverviewTab() {
             body: JSON.stringify({ rentalId: current.rentalId, amount: payAmount }),
         });
         const data = await res.json();
-        if (!res.ok) {
-            alert(data?.error || "Failed to create payment intent");
-            return;
-        }
+        if (!res.ok) return alert(data?.error || "Failed to create payment intent");
         window.location.href = `/pay/cashfree?orderId=${encodeURIComponent(
             data.orderId
         )}&amount=${data.amount}`;
@@ -200,10 +190,7 @@ export default function OverviewTab() {
             body: JSON.stringify({ to: extendDate }),
         });
         const data = await res.json();
-        if (!res.ok) {
-            alert(data?.error || "Failed to extend");
-            return;
-        }
+        if (!res.ok) return alert(data?.error || "Failed to extend");
         setExtendOpen(false);
         mutate();
     };
@@ -216,17 +203,14 @@ export default function OverviewTab() {
             body: JSON.stringify({ note: returnNote || undefined }),
         });
         const data = await res.json();
-        if (!res.ok) {
-            alert(data?.error || "Failed to request return");
-            return;
-        }
+        if (!res.ok) return alert(data?.error || "Failed to request return");
         setReturnOpen(false);
         mutate();
     };
 
     return (
         <div className="space-y-6">
-            {/* KPI cards */}
+            {/* KPIs */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <KpiCard
                     title="Active Rentals"
@@ -295,7 +279,7 @@ export default function OverviewTab() {
                         </div>
                     ) : current ? (
                         <div className="grid gap-4 sm:grid-cols-3">
-                            <div className="relative aspect-video sm:aspect-[4/3] overflow-hidden rounded-xl bg-muted">
+                            <div className="relative aspect-video overflow-hidden rounded-xl bg-muted sm:aspect-[4/3]">
                                 <Image
                                     src={current.vehicle.image || "/images/vehicles/placeholder.webp"}
                                     alt={current.vehicle.model}
@@ -346,7 +330,8 @@ export default function OverviewTab() {
                                         className="rounded-xl"
                                         onClick={() => setExtendOpen(true)}
                                     >
-                                        <CalendarPlus className="mr-2 h-4 w-4" /> Extend
+                                        <CalendarPlus className="mr-2 h-4 w-4" />
+                                        Extend
                                     </Button>
                                     <Button
                                         variant="secondary"
@@ -370,8 +355,7 @@ export default function OverviewTab() {
                     <DialogHeader>
                         <DialogTitle>Pay outstanding balance</DialogTitle>
                         <DialogDescription>
-                            You can pay in full or a partial amount. Note: If you don’t pay in
-                            full, rent is due every Monday or daily from your dashboard.
+                            Pay in full or a partial amount.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-3">
@@ -456,8 +440,6 @@ export default function OverviewTab() {
     );
 }
 
-/* ---------- tiny presentational bits ---------- */
-
 function KpiCard({
                      title,
                      value,
@@ -472,7 +454,7 @@ function KpiCard({
     return (
         <Card className="rounded-2xl">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
                     {icon} {title}
                 </CardTitle>
                 {right}

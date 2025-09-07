@@ -1,160 +1,325 @@
 'use client';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Briefcase, Heart, Leaf, Users } from 'lucide-react';
-import Image from 'next/image';
+
 import Link from 'next/link';
+import {
+    Badge,
+} from '@/components/ui/badge';
+import {
+    Button,
+} from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+} from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+
+import {
+    ShieldCheck,
+    Zap,
+    IndianRupee,
+    Leaf,
+    Briefcase,
+    Users,
+    MapPinned,
+    Mail,
+    Phone,
+} from 'lucide-react';
+
+const team = [
+    { name: 'Rohan Sharma', role: 'Founder & CEO', image: 'https://picsum.photos/200/200?u=rohan' },
+    { name: 'Priya Singh', role: 'Head of Operations', image: 'https://picsum.photos/200/200?u=priya' },
+    { name: 'Amit Patel', role: 'CTO', image: 'https://picsum.photos/200/200?u=amit' },
+    { name: 'Sneha Gupta', role: 'Head of CX', image: 'https://picsum.photos/200/200?u=sneha' },
+];
 
 const faqItems = [
     {
-        question: "What do I need to rent a scooter?",
-        answer: "You'll need a valid driver's license, a national ID (like Aadhaar), and to be at least 18 years old. The entire KYC process can be completed online through our app.",
+        q: 'What do I need to rent a scooter?',
+        a: 'Valid driver’s license, Aadhaar/Passport (ID), age 18+. Complete KYC online from your dashboard.',
     },
     {
-        question: "What is included in the rental price?",
-        answer: "The rental price includes the scooter, a helmet, third-party insurance, and regular maintenance. There are no hidden fees. You only pay for the electricity you use.",
+        q: 'What is included in the rental price?',
+        a: 'Scooter, helmet, third-party insurance, and regular maintenance. No hidden fees—only pay for electricity.',
     },
     {
-        question: "Can I extend my rental period?",
-        answer: "Yes! You can easily extend your rental through the rider dashboard. Our AI assistant can even help you choose the best extension plan based on your needs.",
+        q: 'Can I extend my rental period?',
+        a: 'Yes. Rider Dashboard → Rentals → Extend. Updated charges are shown before you confirm.',
     },
     {
-        question: "What happens if the scooter breaks down?",
-        answer: "Don't worry! We offer 24/7 roadside assistance. Just give us a call through the app, and we'll be there to help you out or provide a replacement vehicle.",
+        q: 'What if the scooter breaks down?',
+        a: '24/7 assistance. Request help in the app—we’ll repair on-site or arrange a replacement.',
     },
     {
-        question: "Are the scooters insured?",
-        answer: "Yes, all our vehicles come with comprehensive insurance covering third-party liability. Optional personal accident coverage is also available as an add-on.",
+        q: 'Are the scooters insured?',
+        a: 'All rides include third-party liability. Optional add-ons (e.g., personal accident cover) are available.',
     },
     {
-        question: "Where can I charge my scooter?",
-        answer: "Our scooters come with a portable charger that can be plugged into any standard home socket. You can also visit any of our partner charging stations across the city."
-    }
+        q: 'Where can I charge my scooter?',
+        a: 'Use the included BIS-certified charger at any standard socket or visit our partner charging points.',
+    },
 ];
 
-const teamMembers = [
-    { name: 'Rohan Sharma', role: 'Founder &amp; CEO', image: 'https://picsum.photos/100/100?random=5' },
-    { name: 'Priya Singh', role: 'Head of Operations', image: 'https://picsum.photos/100/100?random=6' },
-    { name: 'Amit Patel', role: 'Chief Technology Officer', image: 'https://picsum.photos/100/100?random=7' },
-    { name: 'Sneha Gupta', role: 'Head of Customer Experience', image: 'https://picsum.photos/100/100?random=8' },
-]
-
 export default function AboutPage() {
+    const stats = [
+        { label: 'Rides completed', value: '10k+' },
+        { label: 'CO₂ saved', value: '25t+' },
+        { label: 'Fleet size', value: '50+' },
+    ];
+
     return (
-        <div className="bg-background">
-            {/* Hero Section */}
-            <section className="relative gradient-background noise-bg">
-                <div className="container mx-auto max-w-7xl px-4 py-24 text-center text-primary-foreground">
-                    <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl">
-                        Move smarter with ZapGo
+        <div className="container mx-auto px-4 py-10">
+            {/* HERO — consistent with FAQ header */}
+            <section className="relative overflow-hidden rounded-3xl gradient-background noise-bg shadow-lg ring-1 ring-white/10">
+                <div className="absolute inset-0 bg-black/10 dark:bg-black/15" />
+                <div className="relative p-8 sm:p-12 text-primary-foreground">
+                    <Badge className="rounded-xl bg-white/15 text-white">About</Badge>
+                    <h1
+                        className="mt-3 font-headline text-3xl sm:text-5xl font-bold tracking-tight leading-tight text-white"
+                        style={{ textWrap: 'balance' }}
+                    >
+                        Electrifying urban mobility—made simple
                     </h1>
-                    <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl">
-                        We're revolutionizing urban mobility by providing affordable, flexible, and sustainable electric vehicle rentals.
+                    <p className="mt-3 max-w-2xl text-white/90 sm:text-lg">
+                        We’re building India’s most rider-friendly EV rental platform—affordable plans, instant KYC,
+                        and a fleet you can rely on.
                     </p>
-                </div>
-            </section>
 
-            {/* Mission &amp; Values */}
-            <section className="py-20 sm:py-28">
-                <div className="container mx-auto max-w-7xl px-4">
-                    <div className="text-center">
-                        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Our Mission &amp; Values</h2>
-                        <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg">
-                            We are driven by a simple yet powerful mission: to make cities greener and more accessible.
-                        </p>
+                    {/* trust chips */}
+                    <div className="mt-5 flex flex-wrap gap-2">
+                        <Badge className="rounded-xl bg-white/15 text-white hover:bg-white/25">
+                            <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
+                            Secure &amp; insured
+                        </Badge>
+                        <Badge className="rounded-xl bg-white/15 text-white hover:bg-white/25">
+                            <Zap className="mr-1.5 h-3.5 w-3.5" />
+                            Instant KYC
+                        </Badge>
+                        <Badge className="rounded-xl bg-white/15 text-white hover:bg-white/25">
+                            <IndianRupee className="mr-1.5 h-3.5 w-3.5" />
+                            Transparent pricing
+                        </Badge>
                     </div>
-                    <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
-                        <Card className="rounded-2xl text-center shadow-sm border-0 bg-secondary/5">
-                            <CardContent className="p-8">
-                                <div className="inline-block rounded-full bg-primary/10 p-4 text-primary"><Leaf className="h-8 w-8" /></div>
-                                <h3 className="mt-6 text-xl font-bold">Sustainability</h3>
-                                <p className="mt-2 text-muted-foreground">Every ride with ZapGo is a step towards a cleaner planet. We are committed to a zero-emissions future.</p>
-                            </CardContent>
-                        </Card>
-                        <Card className="rounded-2xl text-center shadow-sm border-0 bg-secondary/5">
-                            <CardContent className="p-8">
-                                <div className="inline-block rounded-full bg-primary/10 p-4 text-primary"><Briefcase className="h-8 w-8" /></div>
-                                <h3 className="mt-6 text-xl font-bold">Reliability</h3>
-                                <p className="mt-2 text-muted-foreground">Our fleet is meticulously maintained to ensure your safety and comfort on every journey.</p>
-                            </CardContent>
-                        </Card>
-                        <Card className="rounded-2xl text-center shadow-sm border-0 bg-secondary/5">
-                            <CardContent className="p-8">
-                                <div className="inline-block rounded-full bg-primary/10 p-4 text-primary"><Users className="h-8 w-8" /></div>
-                                <h3 className="mt-6 text-xl font-bold">Community</h3>
-                                <p className="mt-2 text-muted-foreground">We're more than a service; we're a community of riders committed to smarter urban living.</p>
-                            </CardContent>
-                        </Card>
-                    </div>
-                </div>
-            </section>
 
-            {/* Team Section */}
-            <section className="py-20 sm:py-28 bg-background">
-                <div className="container mx-auto max-w-5xl px-4">
-                    <div className="text-center">
-                        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Meet the Team</h2>
-                        <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg">
-                            The passionate individuals driving ZapGo forward.
-                        </p>
-                    </div>
-                    <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-8">
-                        {teamMembers.map((member) => (
-                            <div key={member.name} className="text-center">
-                                <Avatar className="h-24 w-24 mx-auto">
-                                    <AvatarImage src={member.image} alt={member.name} data-ai-hint="person photo" />
-                                    <AvatarFallback>{member.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <h4 className="mt-4 font-semibold text-lg">{member.name}</h4>
-                                <p className="text-sm text-primary">{member.role}</p>
+                    {/* stats strip */}
+                    <div className="mt-6 grid max-w-xl grid-cols-3 gap-3 rounded-2xl border border-white/15 bg-black/10 p-4 backdrop-blur-md">
+                        {stats.map((s) => (
+                            <div key={s.label} className="text-center">
+                                <div className="text-xl font-bold sm:text-2xl text-white">{s.value}</div>
+                                <div className="text-xs text-white/85">{s.label}</div>
                             </div>
                         ))}
                     </div>
                 </div>
             </section>
 
-            {/* FAQ Section */}
-            <section className="py-20 sm:py-28 bg-secondary/5">
-                <div className="container mx-auto max-w-3xl px-4">
+            {/* INTRO + CONTACT (address/email show here) */}
+            <section className="mx-auto mt-8 grid max-w-6xl grid-cols-1 gap-6 px-4 lg:grid-cols-12">
+                {/* Intro blurb */}
+                <Card className="rounded-2xl lg:col-span-8">
+                    <CardContent className="p-6 sm:p-8">
+                        <CardTitle className="text-2xl font-bold">Who we are</CardTitle>
+                        <p className="mt-3 text-muted-foreground sm:text-lg">
+                            ZapGo Rental is on a mission to make city rides greener, simpler, and more affordable.
+                            With rider-first design and transparent pricing, we help thousands move smarter every day.
+                        </p>
+                        <div className="mt-5 flex flex-wrap gap-2">
+                            <Badge variant="secondary" className="rounded-xl">
+                                Rider-first policies
+                            </Badge>
+                            <Badge variant="secondary" className="rounded-xl">
+                                BIS-certified chargers
+                            </Badge>
+                            <Badge variant="secondary" className="rounded-xl">
+                                Reliable maintenance
+                            </Badge>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Contact card (sticky on desktop) */}
+                <Card className="rounded-2xl lg:col-span-4 lg:sticky lg:top-24 h-fit">
+                    <CardHeader>
+                        <CardTitle>Get in touch</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <div className="flex items-start gap-3">
+                            <MapPinned className="mt-0.5 h-5 w-5 text-primary" />
+                            <div className="text-sm">
+                                <div className="font-medium">ZapGo Rental</div>
+                                <div className="text-muted-foreground">
+                                    Holding No. 100/C/32, Sarada Pally, Ghoghomali Main Road,<br />
+                                    Siliguri, Jalpaiguri – 734006 (WB)
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Mail className="h-5 w-5 text-primary" />
+                            <a className="text-primary underline" href="mailto:support@zapgorental.com">
+                                support@zapgorental.com
+                            </a>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <Phone className="h-5 w-5 text-primary" />
+                            <span className="text-sm text-muted-foreground">Mon–Sat, 10:00–19:00 IST</span>
+                        </div>
+                        <div className="pt-2 flex gap-2">
+                            <Button asChild className="rounded-xl">
+                                <Link href="/contact">Contact &amp; Map</Link>
+                            </Button>
+                            <Button asChild variant="outline" className="rounded-xl">
+                                <Link href="/book">Book now</Link>
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </section>
+
+            {/* MISSION & VALUES */}
+            <section className="py-16 sm:py-20">
+                <div className="container mx-auto max-w-7xl px-4">
                     <div className="text-center">
-                        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Frequently Asked Questions</h2>
-                        <p className="mt-4 text-muted-foreground md:text-lg">
-                            Have questions? We've got answers.
+                        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Our Mission &amp; Values</h2>
+                        <p className="mt-3 max-w-2xl mx-auto text-muted-foreground sm:text-lg">
+                            Make cities greener, mobility simpler, and riding truly delightful.
                         </p>
                     </div>
-                    <Accordion type="single" collapsible className="mt-12 w-full">
-                        {faqItems.map((item, index) => (
-                            <AccordionItem key={index} value={`item-${index}`}>
-                                <AccordionTrigger className="text-lg font-medium text-left">{item.question}</AccordionTrigger>
-                                <AccordionContent className="text-base text-muted-foreground">
-                                    {item.answer}
-                                </AccordionContent>
-                            </AccordionItem>
+
+                    <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+                        {[
+                            {
+                                icon: Leaf,
+                                title: 'Sustainability',
+                                desc: 'Every ride cuts emissions. We invest in clean energy ops and safe charging.',
+                            },
+                            {
+                                icon: Briefcase,
+                                title: 'Reliability',
+                                desc: 'Meticulously maintained fleet, proactive checks, BIS-certified chargers.',
+                            },
+                            {
+                                icon: Users,
+                                title: 'Community',
+                                desc: 'Perks, partner offers, and a rider community built around you.',
+                            },
+                        ].map((v) => (
+                            <Card key={v.title} className="rounded-2xl border bg-secondary/5 shadow-sm transition hover:shadow-md">
+                                <CardContent className="p-8 text-center">
+                                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                        <v.icon className="h-8 w-8" />
+                                    </div>
+                                    <h3 className="mt-5 text-xl font-bold">{v.title}</h3>
+                                    <p className="mt-2 text-muted-foreground">{v.desc}</p>
+                                </CardContent>
+                            </Card>
                         ))}
-                    </Accordion>
+                    </div>
                 </div>
             </section>
 
-            {/* CTA Section */}
-            <section className="py-20 sm:py-28">
-                <div className="container mx-auto max-w-7xl px-4">
-                    <div className="bg-card p-10 rounded-2xl shadow-lg border">
+            {/* TEAM */}
+            <section className="py-16 sm:py-20 bg-muted/30 dark:bg-muted/20">
+                <div className="container mx-auto max-w-6xl px-4">
+                    <div className="text-center">
+                        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Meet the Team</h2>
+                        <p className="mt-3 max-w-2xl mx-auto text-muted-foreground sm:text-lg">
+                            A small team with a big mission.
+                        </p>
+                    </div>
+
+                    <div className="mt-10 grid grid-cols-2 gap-6 md:grid-cols-4">
+                        {team.map((m) => (
+                            <Card
+                                key={m.name}
+                                className="group rounded-2xl border bg-card/80 backdrop-blur transition hover:shadow-lg"
+                            >
+                                <CardContent className="p-6 text-center">
+                                    <Avatar className="mx-auto h-24 w-24 ring-2 ring-primary/20 transition group-hover:ring-primary/40">
+                                        <AvatarImage src={m.image} alt={m.name} />
+                                        <AvatarFallback>{m.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="mt-4 font-semibold">{m.name}</div>
+                                    <div className="text-sm text-primary">{m.role}</div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* CTA */}
+            <section className="mt-10 pb-20">
+                <div className="container mx-auto max-w-6xl px-4">
+                    <div className="rounded-3xl border bg-card p-10 shadow-lg sm:p-12">
                         <div className="text-center">
-                            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Ready to Ride?</h2>
-                            <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg">
-                                Join the ZapGo community today and experience the future of urban mobility.
+                            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Ready to ride?</h2>
+                            <p className="mt-3 max-w-2xl mx-auto text-muted-foreground sm:text-lg">
+                                Join thousands of riders choosing a cleaner commute.
                             </p>
-                            <Button asChild size="lg" className="mt-8 rounded-xl">
-                                <Link href="/book">Book Your EV Now</Link>
-                            </Button>
+                            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                                <Button size="lg" asChild className="rounded-xl">
+                                    <Link href="/book">Book your EV now</Link>
+                                </Button>
+                                <Button size="lg" variant="outline" asChild className="rounded-xl">
+                                    <Link href="/vehicles">Browse vehicles</Link>
+                                </Button>
+                            </div>
+                            <Separator className="my-8" />
+                            <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Insured rides
+                </span>
+                                <span>•</span>
+                                <span className="inline-flex items-center gap-1">
+                  <Zap className="h-3.5 w-3.5" /> Instant KYC
+                </span>
+                                <span>•</span>
+                                <span className="inline-flex items-center gap-1">
+                  <IndianRupee className="h-3.5 w-3.5" /> Transparent pricing
+                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
+
+            {/* Page JSON-LD (About + breadcrumbs) */}
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        '@context': 'https://schema.org',
+                        '@type': 'AboutPage',
+                        name: 'About ZapGo Rental',
+                        url: '/about',
+                    }),
+                }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{
+                    __html: JSON.stringify({
+                        '@context': 'https://schema.org',
+                        '@type': 'BreadcrumbList',
+                        itemListElement: [
+                            { '@type': 'ListItem', position: 1, name: 'Home', item: '/' },
+                            { '@type': 'ListItem', position: 2, name: 'About', item: '/about' },
+                        ],
+                    }),
+                }}
+            />
         </div>
     );
 }

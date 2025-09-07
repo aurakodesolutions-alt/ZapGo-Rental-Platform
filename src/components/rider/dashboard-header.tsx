@@ -14,9 +14,7 @@ import { LayoutDashboard, LogOut } from "lucide-react";
 import Link from "next/link";
 import { toast } from "@/hooks/use-toast";
 
-type DashboardHeaderProps = {
-    firstName: string;
-};
+type DashboardHeaderProps = { firstName: string };
 
 function getInitials(name: string) {
     return name
@@ -40,95 +38,81 @@ export default function DashboardHeader({ firstName }: DashboardHeaderProps) {
         try {
             const res = await fetch(`/api/v1/public/auth/logout`, { method: "POST" });
             if (res.status === 200) {
-                toast({ title: "Logged out", variant: "default", duration: 3000 });
+                toast({ title: "Logged out", duration: 2500 });
                 window.location.href = "/";
             } else {
                 window.location.reload();
             }
-        } catch (e: any) {
-            console.error(e);
+        } catch (e) {
             toast({
-                title: "Logout Error",
-                variant: "destructive",
+                title: "Logout error",
                 description: "Please try again.",
+                variant: "destructive",
             });
         }
     };
 
     return (
-        <div className="flex w-full flex-row items-center justify-between gap-3">
-            {/* Left: Greeting */}
+        <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-                <h1 className="text-xl sm:text-3xl font-bold truncate max-w-[75vw]">
+                <p className="rounded-xl bg-white/15 px-2 py-1 text-xs text-white shadow-sm backdrop-blur">
+                    Rider
+                </p>
+                <h1 className="mt-2 text-2xl font-bold text-white sm:text-3xl">
                     Welcome back, {firstName}!
                 </h1>
-                {/* Hide date on very narrow screens to save space */}
-                <p className="text-muted-foreground mt-0.5 hidden xs:block">
-                    {today}
-                </p>
+                <p className="mt-1 hidden text-white/80 xs:block">{today}</p>
             </div>
 
-            {/* Right: Avatar / Menu */}
-            <div className="shrink-0">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        {/* Larger touch-target on mobile, smaller on sm+ */}
-                        <Button
-                            variant="ghost"
-                            className="relative h-12 w-12 rounded-full p-0 sm:h-10 sm:w-10"
-                            aria-label="Open profile menu"
-                        >
-                            <Avatar className="h-12 w-12 sm:h-10 sm:w-10 ring-1 ring-border">
-                                <AvatarImage
-                                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
-                                        firstName || "Rider",
-                                    )}`}
-                                    alt={firstName}
-                                />
-                                <AvatarFallback>{getInitials(firstName || "R")}</AvatarFallback>
-                            </Avatar>
-                        </Button>
-                    </DropdownMenuTrigger>
-
-                    {/* Make menu fit on mobile screens */}
-                    <DropdownMenuContent
-                        align="end"
-                        sideOffset={8}
-                        className="w-64 max-w-[calc(100vw-1.5rem)]"
-                        forceMount
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        className="h-12 w-12 rounded-full p-0 ring-1 ring-white/20 hover:bg-white/10"
+                        aria-label="Open profile menu"
                     >
-                        <DropdownMenuLabel className="font-normal">
-                            <div className="flex min-w-0 flex-col space-y-1">
-                                <p className="truncate text-sm font-medium leading-none">
-                                    {firstName}
-                                </p>
-                                <p className="text-xs leading-none text-muted-foreground">
-                                    Rider
-                                </p>
-                            </div>
-                        </DropdownMenuLabel>
-
-                        <DropdownMenuSeparator />
-
-                        <DropdownMenuItem asChild>
-                            <Link href="/rider/dashboard" className="flex items-center">
-                                <LayoutDashboard className="mr-2 h-4 w-4" />
-                                Dashboard
-                            </Link>
-                        </DropdownMenuItem>
-
-                        <DropdownMenuSeparator />
-
-                        <DropdownMenuItem
-                            onClick={handleLogout}
-                            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                        >
-                            <LogOut className="mr-2 h-4 w-4" />
-                            Logout
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
+                        <Avatar className="h-12 w-12">
+                            <AvatarImage
+                                src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
+                                    firstName || "Rider"
+                                )}`}
+                                alt={firstName}
+                            />
+                            <AvatarFallback>{getInitials(firstName || "R")}</AvatarFallback>
+                        </Avatar>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                    align="end"
+                    sideOffset={8}
+                    className="w-64 max-w-[calc(100vw-1.5rem)]"
+                    forceMount
+                >
+                    <DropdownMenuLabel className="font-normal">
+                        <div className="flex min-w-0 flex-col space-y-1">
+                            <p className="truncate text-sm font-medium leading-none">
+                                {firstName}
+                            </p>
+                            <p className="text-xs leading-none text-muted-foreground">Rider</p>
+                        </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                        <Link href="/rider/dashboard" className="flex items-center">
+                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                            Dashboard
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                        onClick={handleLogout}
+                        className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                    >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
     );
 }
