@@ -133,7 +133,7 @@ export default function BookingDetailsPage() {
                         </div>
 
                         <div className="flex gap-2 pt-4">
-                            <Button onClick={() => router.push("/dashboard")}>Go to Dashboard</Button>
+                            <Button onClick={() => router.push("/rider/profile")}>Go to Dashboard</Button>
                             <Button variant="outline" onClick={() => router.push("/")}>Back to Home</Button>
                         </div>
                     </div>

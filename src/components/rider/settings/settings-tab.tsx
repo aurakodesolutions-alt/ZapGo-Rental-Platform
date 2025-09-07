@@ -10,9 +10,9 @@ import { Separator } from "@/components/ui/separator";
 
 type Rider = {
     riderId: number | string;
-    fullName: string;
-    email: string;
-    phone: string;
+    FullName: string;
+    Email: string;
+    Phone: string;
 };
 
 async function postJSON(url: string, { arg }: { arg: any }) {
@@ -27,9 +27,9 @@ async function postJSON(url: string, { arg }: { arg: any }) {
 }
 
 export default function SettingsTab({ rider }: { rider: Rider }) {
-    const [name, setName] = useState(rider.fullName);
-    const [phone, setPhone] = useState(rider.phone);
-    const [email, setEmail] = useState(rider.email);
+    const [name, setName] = useState(rider?.FullName);
+    const [phone, setPhone] = useState(rider?.Phone);
+    const [email, setEmail] = useState(rider?.Email);
 
     const [current, setCurrent] = useState("");
     const [next, setNext] = useState("");

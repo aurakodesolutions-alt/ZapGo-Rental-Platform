@@ -46,6 +46,7 @@ export type RiderKycInput = {
 
     drivingLicenseNumber?: string | null;
     drivingLicenseImageUrl?: string | null;
+    selfieImageUrl?: string | null;
 
 };
 
@@ -285,7 +286,7 @@ export interface WizardBookingDraft {
     holdExpiresAt?: number;
     contact?: { fullName: string; phone: string; email: string };
     accountPassword?: string;
-    kyc?: { aadhaar: string; aadhaarImageUrl: string; pan: string; panImageUrl: string; dl?: string; dlImageUrl?: string  };
+    kyc?: { aadhaar: string; aadhaarImageUrl: string; pan: string; panImageUrl: string; dl?: string; dlImageUrl?: string, selfieImageUrl?: string  };
     termsAccepted?: boolean;
     bookingId?: string;
     bookingCode?: string;

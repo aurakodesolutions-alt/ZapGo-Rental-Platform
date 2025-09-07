@@ -124,6 +124,7 @@ export function Step5_Payment({ onNext }: { onNext: () => void }) {
                     aadhaarImageUrl: draft.kyc?.aadhaarImageUrl ?? null,
                     panCardImageUrl: draft.kyc?.panImageUrl ?? null,
                     drivingLicenseImageUrl: draft.kyc?.dlImageUrl ?? null,
+                    selfieImageUrl: draft.kyc?.selfieImageUrl ?? null,
                 },
                 planId: draft!.planId,
                 vehicleId: draft.vehicle!.id,

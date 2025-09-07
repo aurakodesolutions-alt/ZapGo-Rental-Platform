@@ -20,6 +20,7 @@ import { Loader2, Fingerprint, CreditCard, Car } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { FileUpload } from "./file-upload";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import SelfieCapture from "@/components/rider/kyc/selfie-capture";
 
 const riderSchema = z.object({
     fullName: z.string().min(3, "Full name must be at least 3 characters."),
@@ -37,6 +38,7 @@ const riderSchema = z.object({
     aadhaarFile: z.any().optional(),
     panFile: z.any().optional(),
     dlFile: z.any().optional(),
+    selfieFile: z.any().optional(),
     dlExpiry: z.string().optional(),
 
     termsAccepted: z.boolean().refine((val) => val, "You must accept the terms."),
@@ -65,6 +67,7 @@ export function Step4_Rider({ onNext }: Step4RiderProps) {
             dl: draft.kyc?.dl || "",
             dlExpiry: "",
 
+            selfieFile: undefined,
             termsAccepted: !!draft.termsAccepted,
         },
     });
@@ -111,6 +114,7 @@ export function Step4_Rider({ onNext }: Step4RiderProps) {
             if (data.aadhaarFile) fd.set("aadhaarFile", data.aadhaarFile);
             if (data.panFile) fd.set("panFile", data.panFile);
             if (data.dlFile) fd.set("dlFile", data.dlFile);
+            if(data.selfieFile) fd.set("selfieFile", data.selfieFile);
 
             const up = await fetch("/api/v1/public/riders/upload", { method: "POST", body: fd });
             const res = await up.json();
@@ -129,6 +133,7 @@ export function Step4_Rider({ onNext }: Step4RiderProps) {
                     aadhaarImageUrl: res.data?.aadhaarFile,
                     panImageUrl: res.data?.panFile,
                     dlImageUrl: res.data?.dlFile,
+                    selfieImageUrl: res.data?.selfieFile ?? null,
                 },
                 accountPassword: data.password, // from your new password field
                 termsAccepted: data.termsAccepted,
@@ -223,7 +228,33 @@ export function Step4_Rider({ onNext }: Step4RiderProps) {
                             </div>
                         </CardContent>
                     </Card>
-
+                    {/* SELFIE FOR KYC */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Fingerprint className="text-primary" /> Selfie for KYC
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <p className="text-sm text-muted-foreground">
+                                Please capture a clear front-facing photo. Remove sunglasses/mask and ensure good lighting.
+                            </p>
+                            <FormField
+                                control={form.control}
+                                name="selfieFile"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <SelfieCapture
+                                            value={field.value instanceof File ? field.value : null}
+                                            onChange={field.onChange}
+                                            required={false /* set true if you want to enforce */}
+                                        />
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                    </Card>
                     <div>
                         <h2 className="text-xl font-semibold">KYC Information</h2>
                         <p className="text-sm text-muted-foreground">

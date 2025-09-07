@@ -9,6 +9,8 @@ const config: sql.config = {
         encrypt: true,
         trustServerCertificate: true,
     },
+    requestTimeout: 45000,
+    pool: { min: 1, max: 10, idleTimeoutMillis: 30000 },
     port:1433
 };
 

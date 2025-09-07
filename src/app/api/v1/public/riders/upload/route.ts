@@ -65,13 +65,13 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ ok: false, error: "Missing riderName" }, { status: 400 });
         }
 
-        const entries = (["aadhaarFile", "panFile", "dlFile"] as const)
+        const entries = (["aadhaarFile", "panFile", "dlFile","selfieFile"] as const)
             .map((f) => ({ field: f, file: form.get(f) as File | null }))
             .filter((x) => x.file instanceof File);
 
         if (entries.length === 0) {
             return NextResponse.json(
-                { ok: false, error: "No files provided. Fields: aadhaarFile | panFile | dlFile" },
+                { ok: false, error: "No files provided. Fields: aadhaarFile | panFile | dlFile | selfieFile" },
                 { status: 400 }
             );
         }
