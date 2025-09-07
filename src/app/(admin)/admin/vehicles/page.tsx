@@ -166,7 +166,7 @@ export default function VehiclesPage() {
 
                                     <TableCell className="text-right">
                                         <Button variant="outline" size="sm" asChild>
-                                            <Link href={`/admin/vehicles/${v.id}`}>View Details</Link>
+                                            <Link href={`/admin/vehicles/${v.vehicleId}`}>View Details</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

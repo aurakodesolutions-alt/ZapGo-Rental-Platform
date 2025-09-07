@@ -367,7 +367,7 @@ export function Step4_Rider({ onNext }: Step4RiderProps) {
                                 <div className="space-y-1 leading-none">
                                     <FormLabel>
                                         I accept the{" "}
-                                        <a href="#" className="underline text-primary">
+                                        <a href="/legal/terms" className="underline text-primary">
                                             Privacy Policy & Terms of Service
                                         </a>.
                                     </FormLabel>

@@ -117,26 +117,24 @@ export const footerLinks = [
     {
         title: 'Company',
         links: [
-            { name: 'About Us', href: '#' },
-            { name: 'Careers', href: '#' },
-            { name: 'Press', href: '#' },
+            { name: 'About Us', href: '/about-us' },
         ],
     },
     {
         title: 'Support',
         links: [
-            { name: 'Contact Us', href: '/contact' },
+            { name: 'Contact Us', href: '/contact-us' },
             { name: 'FAQ', href: '/faq' },
-            { name: 'Terms of Service', href: '/terms' },
+            { name: 'Terms of Service', href: '/legal/terms' },
             { name: 'Privacy Policy', href: '/privacy' },
         ],
     },
     {
         title: 'Blogs',
         links: [
-            { name: 'Tech', href: '#' },
-            { name: 'News', href: '#' },
-            { name: 'Events', href: '#' },
+            { name: 'Tech', href: '/blog' },
+            { name: 'News', href: '/blog' },
+            { name: 'Events', href: '/blog' },
         ],
     },
 ];
