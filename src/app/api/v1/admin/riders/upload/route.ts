@@ -20,6 +20,7 @@ const FIELD_TO_DOCNAME: Record<string, string> = {
     aadhaarFile: "aadhaar",
     panFile: "pan",
     dlFile: "dl",
+    selfieFile: "selfie",
 };
 
 function slugify(input: string) {
@@ -84,6 +85,7 @@ export async function POST(req: NextRequest) {
             { field: "aadhaarFile", file: form.get("aadhaarFile") as File | null },
             { field: "panFile", file: form.get("panFile") as File | null },
             { field: "dlFile", file: form.get("dlFile") as File | null },
+            { field: "selfieFile", file: form.get("selfieFile") as File | null },
         ].filter((e) => e.file instanceof File);
 
         if (entries.length === 0) {

@@ -56,11 +56,11 @@ export async function GET(
     props: { params: Promise<{ id: string }> }
 ) {
     try {
-        const id = Number((await (props.params)).id);
-        const parsed = IdSchema.parse({ id });
+        const parsed = Number((await (props.params)).id);
+        // const parsed = IdSchema.parse({ id });
 
         const pool = await getConnection();
-        const r = new sql.Request(pool).input("VehicleId", sql.BigInt, parsed.id);
+        const r = new sql.Request(pool).input("VehicleId", sql.BigInt, parsed);
         const result = await r.query(`SELECT * FROM dbo.Vehicles WHERE VehicleId = @VehicleId;`);
         const row = result.recordset?.[0];
         if (!row) return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });

@@ -24,7 +24,7 @@ import { useToast } from "@/hooks/use-toast";
     useEffect(() => {
         if (status === "authenticated") {
             const role = (data?.user as any)?.role;
-            if (role === "admin") {
+            if (role === "admin" || role === "staff") {
                 router.replace("/admin/dashboard"); // server gate will route to /admin/dashboard
             } else {
                 router.replace("/");

@@ -15,11 +15,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { useToast } from '@/hooks/use-toast';
 import type { Vehicle } from '@/lib/types';
-import { VehicleFormSchema } from "@/lib/schema";
+import { VehicleFormSchema } from '@/lib/schema';
 import { useVehicle, useVehicles } from '@/hooks/api/use-vehicles';
 import { usePlans } from '@/hooks/api/use-plans';
 
-// ---------------- Schema ----------------
+/* ---------------- Schema ---------------- */
 type VehicleFormValues = z.infer<typeof VehicleFormSchema>;
 
 type Props = {
@@ -33,12 +33,12 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
 
     const isEdit = !!vehicle;
     const { create } = useVehicles();
-    const { update } = useVehicle(vehicle?.id);
+    const { update } = useVehicle(vehicle?.vehicleId);
 
-    // --- Plans from DB
+    // Plans from DB
     const { plans, isLoading: plansLoading } = usePlans();
 
-    // --- Image file state & previews
+    // Image file state & previews
     const [files, setFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
 
@@ -55,7 +55,7 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
     const defaults: Partial<VehicleFormValues> = useMemo(() => {
         if (!vehicle) {
             return {
-                planId: plans?.[0]?.planId ?? 1,
+                planId: plans?.[0]?.planId ?? undefined, // let it be undefined until plans load
                 uniqueCode: '',
                 model: '',
                 vinNumber: '',
@@ -84,10 +84,13 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
             rentPerDay: vehicle.rentPerDay,
             quantity: vehicle.quantity ?? 1,
 
-            lastServiceDate: vehicle.lastServiceDate ?? undefined,
+            // ensure date-only string if you store ISO
+            lastServiceDate: vehicle.lastServiceDate
+                ? String(vehicle.lastServiceDate).slice(0, 10)
+                : undefined,
             serviceIntervalDays: vehicle.serviceIntervalDays ?? undefined,
 
-            tagsCsv: (vehicle.tags ?? []).join(', '),
+            tagsCsv: Array.isArray(vehicle.tags) ? vehicle.tags.join(', ') : (vehicle.tags ?? ''),
             rating: vehicle.rating,
 
             specs_rangeKm: vehicle.specs?.rangeKm,
@@ -102,11 +105,11 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
         defaultValues: defaults,
     });
 
-    const toArray = (csv?: string) =>
-        (csv ?? '')
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean);
+    // ✅ Important: reset form when defaults change (e.g., plans load or vehicle fetched)
+    useEffect(() => {
+        form.reset(defaults as VehicleFormValues);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [JSON.stringify(defaults)]);
 
     // Upload currently selected files and return their public URLs from the API
     async function uploadSelectedFiles(): Promise<string[]> {
@@ -116,23 +119,22 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
         }
 
         const fd = new FormData();
-        files.forEach((f) => fd.append("files", f, f.name));
+        files.forEach((f) => fd.append('files', f, f.name));
 
-        const res = await fetch("/api/v1/admin/vehicles/images", {
-            method: "POST",
+        const res = await fetch('/api/v1/admin/vehicles/images', {
+            method: 'POST',
             body: fd,
         });
 
         if (!res.ok) {
-            const text = await res.text().catch(() => "");
-            throw new Error(text || "Image upload failed");
+            const text = await res.text().catch(() => '');
+            throw new Error(text || 'Image upload failed');
         }
 
         const json = await res.json();
         // API returns { ok: true, urls: string[] }
         return Array.isArray(json?.urls) ? (json.urls as string[]) : [];
     }
-
 
     async function onSubmit(values: VehicleFormValues) {
         try {
@@ -149,12 +151,13 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                 rentPerDay: values.rentPerDay,
                 quantity: values.quantity,
 
+                // normalize to either null or YYYY-MM-DD (your API can convert to DateTime)
                 lastServiceDate: values.lastServiceDate || null,
                 serviceIntervalDays: values.serviceIntervalDays ?? null,
 
-                vehicleImagesUrls: imageUrls,                       // <-- use uploaded URLs
-                tags: (values.tagsCsv ?? "")
-                    .split(",")
+                vehicleImagesUrls: imageUrls,
+                tags: (values.tagsCsv ?? '')
+                    .split(',')
                     .map((s) => s.trim())
                     .filter(Boolean),
                 rating: values.rating,
@@ -170,20 +173,22 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
             // 3) Create or update via your hooks
             if (isEdit) {
                 await update(payload);
-                toast({ title: "Vehicle Updated", description: `Saved changes for ${payload.uniqueCode}.` });
+                toast({ title: 'Vehicle Updated', description: `Saved changes for ${payload.uniqueCode}.` });
             } else {
                 await create(payload);
-                toast({ title: "Vehicle Created", description: `Vehicle ${payload.uniqueCode} has been added.` });
+                toast({ title: 'Vehicle Created', description: `Vehicle ${payload.uniqueCode} has been added.` });
             }
 
             if (onSuccess) return onSuccess();
-            if (isEdit) return router.refresh();
-            router.push("/admin/vehicles");
+            if (isEdit) return router.refresh?.();
+            router.push('/admin/vehicles');
         } catch (e: any) {
-            toast({ title: "Error", description: String(e?.message || e), variant: "destructive" });
+            toast({ title: 'Error', description: String(e?.message || e), variant: 'destructive' });
         }
     }
 
+    const toNum = (v: string) => (v === '' ? undefined : Number(v));
+    const toYMD = (v?: string) => (v ? v.slice(0, 10) : '');
 
     return (
         <Form {...form}>
@@ -198,7 +203,7 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                                 <FormLabel>Plan</FormLabel>
                                 <Select
                                     onValueChange={(v) => field.onChange(Number(v))}
-                                    defaultValue={String(field.value ?? '')}
+                                    value={field.value != null ? String(field.value) : undefined}
                                     disabled={plansLoading}
                                 >
                                     <FormControl>
@@ -261,8 +266,10 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Status</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger></FormControl>
+                                <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                                    <FormControl>
+                                        <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         <SelectItem value="Available">Available</SelectItem>
                                         <SelectItem value="Rented">Rented</SelectItem>
@@ -278,7 +285,15 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Rent (per day)</FormLabel>
-                                <FormControl><Input type="number" step="0.01" min="0" {...field} /></FormControl>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={field.value ?? 0}
+                                        onChange={(e) => field.onChange(toNum(e.target.value) ?? 0)}
+                                    />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -296,7 +311,7 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                                         type="number"
                                         min={1}
                                         value={field.value ?? 1}
-                                        onChange={(e) => field.onChange(Number(e.target.value || 1))}
+                                        onChange={(e) => field.onChange(toNum(e.target.value) ?? 1)}
                                     />
                                 </FormControl>
                                 <FormMessage />
@@ -314,7 +329,7 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                                 <FormControl>
                                     <Input
                                         type="date"
-                                        value={field.value ?? ''}
+                                        value={toYMD(field?.value || "")}
                                         onChange={(e) => field.onChange(e.target.value || undefined)}
                                         onBlur={field.onBlur}
                                         name={field.name}
@@ -336,10 +351,7 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                                     <Input
                                         type="number"
                                         value={field.value ?? ''}
-                                        onChange={(e) => {
-                                            const raw = e.target.value;
-                                            field.onChange(raw === '' ? undefined : Number(raw));
-                                        }}
+                                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
                                         onBlur={field.onBlur}
                                         name={field.name}
                                         ref={field.ref}
@@ -371,7 +383,6 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                             <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                                 {previews.map((src, i) => (
                                     <div key={i} className="relative overflow-hidden rounded-md border">
-                                        {/* use <img> for blob: URLs */}
                                         <img src={src} alt={`preview-${i}`} className="h-28 w-full object-cover" />
                                         <div className="p-2 text-[11px] text-muted-foreground truncate">
                                             {files[i]?.name}
@@ -381,8 +392,7 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                             </div>
                         )}
                         <p className="text-xs text-muted-foreground mt-2">
-                            Files will be saved to <code>/public/images/vehicles</code> by your upload API. We’re submitting the future paths
-                            so the UI can render them once saved.
+                            Files are uploaded via <code>/api/v1/admin/vehicles/images</code> and saved under <code>/public/images/vehicles</code>.
                         </p>
                     </FormItem>
 
@@ -404,7 +414,16 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Rating (0–5)</FormLabel>
-                                <FormControl><Input type="number" min={0} max={5} step="0.1" {...field} /></FormControl>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        min={0}
+                                        max={5}
+                                        step="0.1"
+                                        value={field.value ?? ''}
+                                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                                    />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -417,7 +436,14 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Range (km)</FormLabel>
-                                <FormControl><Input type="number" min={0} {...field} /></FormControl>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        min={0}
+                                        value={field.value ?? ''}
+                                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                                    />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -428,7 +454,14 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Top Speed (km/h)</FormLabel>
-                                <FormControl><Input type="number" min={0} {...field} /></FormControl>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        min={0}
+                                        value={field.value ?? ''}
+                                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                                    />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
@@ -450,7 +483,15 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Charging Time (hours)</FormLabel>
-                                <FormControl><Input type="number" min={0} step="0.1" {...field} /></FormControl>
+                                <FormControl>
+                                    <Input
+                                        type="number"
+                                        min={0}
+                                        step="0.1"
+                                        value={field.value ?? ''}
+                                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                                    />
+                                </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}

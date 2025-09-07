@@ -93,12 +93,12 @@ export function Sidebar() {
     ];
 
     const batteryLinks = [
-        { href: '/batteries', label: 'Batteries', icon: <Battery className="h-4 w-4" />},
+        { href: '/admin/inventory', label: 'Inventory', icon: <Battery className="h-4 w-4" />},
     ]
 
     const adminLinks = [
-        { href: '/staff', label: 'Staff', icon: <Users className="h-4 w-4" /> },
-        { href: '/settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
+        { href: '/admin/staff', label: 'Staff', icon: <Users className="h-4 w-4" /> },
+        { href: '/admin/settings', label: 'Settings', icon: <Settings className="h-4 w-4" /> },
     ];
     if(status === 'unauthenticated') {
         return(

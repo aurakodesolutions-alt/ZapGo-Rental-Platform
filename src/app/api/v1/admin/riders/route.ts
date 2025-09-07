@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 import { getConnection, sql } from "@/lib/db";
 
 /* ---------------- helpers ---------------- */
@@ -10,7 +11,8 @@ function rowToRider(row: any) {
         row.DrivingLicenseNumber ||
         row.AadhaarImageUrl ||
         row.PanCardImageUrl ||
-        row.DrivingLicenseImageUrl;
+        row.DrivingLicenseImageUrl ||
+        row.SelfieImageUrl;
 
     return {
         riderId: row.RiderId,
@@ -27,6 +29,7 @@ function rowToRider(row: any) {
                 panCardImageUrl: row.PanCardImageUrl ?? "",
                 drivingLicenseNumber: row.DrivingLicenseNumber ?? null,
                 drivingLicenseImageUrl: row.DrivingLicenseImageUrl ?? null,
+                selfieImageUrl: row.SelfieImageUrl ?? "",
                 kycCreatedAtUtc: row.KycCreatedAtUtc
                     ? new Date(row.KycCreatedAtUtc).toISOString()
                     : new Date().toISOString(),
@@ -42,7 +45,7 @@ const ListQuery = z.object({
     offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
-// helper: accept absolute URL OR site-relative path OR empty
+// absolute URL OR site-relative path OR empty
 const FileUrl = z
     .string()
     .trim()
@@ -50,9 +53,9 @@ const FileUrl = z
     .transform((v) => (v ?? "").trim())
     .refine(
         (v) =>
-            v === "" ||                // allow empty
-            v.startsWith("/") ||       // allow /images/...
-            /^https?:\/\//i.test(v),   // allow http(s)://...
+            v === "" ||
+            v.startsWith("/") ||
+            /^https?:\/\//i.test(v),
         { message: "Must be a valid URL or site-relative path" }
     );
 
@@ -60,6 +63,8 @@ const RiderCreateSchema = z.object({
     fullName: z.string().min(1),
     phone: z.string().min(5),
     email: z.string().email(),
+    // NEW: password is optional; if provided, must be >= 6
+    password: z.string().min(6).optional(),
     kyc: z
         .object({
             aadhaarNumber: z.string().length(12),
@@ -68,9 +73,17 @@ const RiderCreateSchema = z.object({
             panCardImageUrl: FileUrl,
             drivingLicenseNumber: z.string().optional().nullable(),
             drivingLicenseImageUrl: FileUrl.nullable(),
+            // NEW: selfie support
+            selfieImageUrl: FileUrl,
         })
         .optional(),
 });
+
+function emptyToNull(v?: string | null) {
+    if (v == null) return null;
+    const s = String(v).trim();
+    return s.length ? s : null;
+}
 
 /* ---------------- GET /riders ---------------- */
 export async function GET(req: NextRequest) {
@@ -90,16 +103,14 @@ export async function GET(req: NextRequest) {
         let where = "";
         if (parsed.q) {
             r.input("Q", sql.NVarChar(256), `%${parsed.q}%`);
-            where = `
-        WHERE (r.FullName LIKE @Q OR r.Phone LIKE @Q OR r.Email LIKE @Q)
-      `;
+            where = `WHERE (r.FullName LIKE @Q OR r.Phone LIKE @Q OR r.Email LIKE @Q)`;
         }
 
         const result = await r.query(`
             SELECT
                 r.RiderId, r.FullName, r.Phone, r.Email, r.CreatedAtUtc,
                 k.AadhaarNumber, k.AadhaarImageUrl, k.PanNumber, k.PanCardImageUrl,
-                k.DrivingLicenseNumber, k.DrivingLicenseImageUrl, k.KycCreatedAtUtc
+                k.DrivingLicenseNumber, k.DrivingLicenseImageUrl, k.SelfieImageUrl, k.KycCreatedAtUtc
             FROM dbo.Riders r
                      LEFT JOIN dbo.RiderKyc k ON k.RiderId = r.RiderId
                 ${where}
@@ -114,76 +125,88 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ ok: false, error: "Failed to list riders" }, { status: 500 });
     }
 }
-function emptyToNull(v?: string | null) {
-    if (v == null) return null;
-    const s = String(v).trim();
-    return s.length ? s : null;
-}
 
 /* ---------------- POST /riders ---------------- */
 export async function POST(req: NextRequest) {
+    let trx: sql.Transaction | null = null;
+
     try {
         const body = RiderCreateSchema.parse(await req.json());
         const pool = await getConnection();
 
-        // Insert Rider
-        const r = new sql.Request(pool)
+        trx = new sql.Transaction(pool);
+        await trx.begin();
+
+        const tReq = () => new sql.Request(trx!);
+
+        // Hash password if provided
+        const passwordHash = body.password ? await bcrypt.hash(body.password, 10) : null;
+
+        // Insert Rider (now includes PasswordHash + IsActive)
+        const r = tReq()
             .input("FullName", sql.NVarChar(100), body.fullName)
             .input("Phone", sql.VarChar(15), body.phone)
-            .input("Email", sql.NVarChar(256), body.email);
+            .input("Email", sql.NVarChar(256), body.email)
+            .input("PasswordHash", sql.NVarChar(255), passwordHash);
 
         const insertRiderSql = `
       SET NOCOUNT ON;
-      INSERT INTO dbo.Riders (FullName, Phone, Email, CreatedAtUtc)
-      VALUES (@FullName, @Phone, @Email, SYSUTCDATETIME());
+      INSERT INTO dbo.Riders (FullName, Phone, Email, PasswordHash, CreatedAtUtc, IsActive)
+      VALUES (@FullName, @Phone, @Email, @PasswordHash, SYSUTCDATETIME(), 1);
       SELECT CAST(SCOPE_IDENTITY() AS INT) AS NewId;
     `;
         const ins = await r.query<{ NewId: number }>(insertRiderSql);
         const riderId = ins.recordset?.[0]?.NewId;
         if (!riderId) {
-            return NextResponse.json(
-                { ok: false, error: "Insert succeeded but id not returned" },
-                { status: 500 }
-            );
+            throw new Error("Insert succeeded but id not returned");
         }
 
-        // Optional KYC insert
+        // Optional KYC insert (now includes SelfieImageUrl)
         if (body.kyc) {
-            const k = new sql.Request(pool)
+            await tReq()
                 .input("RiderId", sql.Int, riderId)
                 .input("AadhaarNumber", sql.Char(12), body.kyc.aadhaarNumber)
                 .input("AadhaarImageUrl", sql.NVarChar(2048), emptyToNull(body.kyc.aadhaarImageUrl))
                 .input("PanNumber", sql.Char(10), body.kyc.panNumber)
                 .input("PanCardImageUrl", sql.NVarChar(2048), emptyToNull(body.kyc.panCardImageUrl))
                 .input("DrivingLicenseNumber", sql.NVarChar(32), emptyToNull(body.kyc.drivingLicenseNumber ?? null))
-                .input("DrivingLicenseImageUrl", sql.NVarChar(2048), emptyToNull(body.kyc.drivingLicenseImageUrl ?? null));
-
-            await k.query(`
-                INSERT INTO dbo.RiderKyc
-                (RiderId, AadhaarNumber, AadhaarImageUrl, PanNumber, PanCardImageUrl,
-                 DrivingLicenseNumber, DrivingLicenseImageUrl, KycCreatedAtUtc)
-                VALUES
-                    (@RiderId, @AadhaarNumber, @AadhaarImageUrl, @PanNumber, @PanCardImageUrl,
-                     @DrivingLicenseNumber, @DrivingLicenseImageUrl, SYSUTCDATETIME());
-            `);
+                .input("DrivingLicenseImageUrl", sql.NVarChar(2048), emptyToNull(body.kyc.drivingLicenseImageUrl ?? null))
+                .input("SelfieImageUrl", sql.NVarChar(2048), emptyToNull(body.kyc.selfieImageUrl))
+                .query(`
+          INSERT INTO dbo.RiderKyc
+            (RiderId, AadhaarNumber, AadhaarImageUrl, PanNumber, PanCardImageUrl,
+             DrivingLicenseNumber, DrivingLicenseImageUrl, SelfieImageUrl, KycCreatedAtUtc)
+          VALUES
+            (@RiderId, @AadhaarNumber, @AadhaarImageUrl, @PanNumber, @PanCardImageUrl,
+             @DrivingLicenseNumber, @DrivingLicenseImageUrl, @SelfieImageUrl, SYSUTCDATETIME());
+        `);
         }
 
-        // Return with LEFT JOIN
+        await trx.commit();
+        trx = null;
+
+        // Return the newly created rider (LEFT JOIN)
         const rowRs = await pool
             .request()
             .input("RiderId", sql.Int, riderId)
             .query(`
-                SELECT
-                    r.RiderId, r.FullName, r.Phone, r.Email, r.CreatedAtUtc,
-                    k.AadhaarNumber, k.AadhaarImageUrl, k.PanNumber, k.PanCardImageUrl,
-                    k.DrivingLicenseNumber, k.DrivingLicenseImageUrl, k.KycCreatedAtUtc
-                FROM dbo.Riders r
-                         LEFT JOIN dbo.RiderKyc k ON k.RiderId = r.RiderId
-                WHERE r.RiderId = @RiderId;
-            `);
+        SELECT
+          r.RiderId, r.FullName, r.Phone, r.Email, r.CreatedAtUtc,
+          k.AadhaarNumber, k.AadhaarImageUrl, k.PanNumber, k.PanCardImageUrl,
+          k.DrivingLicenseNumber, k.DrivingLicenseImageUrl, k.SelfieImageUrl, k.KycCreatedAtUtc
+        FROM dbo.Riders r
+        LEFT JOIN dbo.RiderKyc k ON k.RiderId = r.RiderId
+        WHERE r.RiderId = @RiderId;
+      `);
 
         return NextResponse.json({ ok: true, data: rowToRider(rowRs.recordset[0]) });
     } catch (err: any) {
+        try {
+            if (trx && (trx as any)._aborted !== true) {
+                await trx.rollback();
+            }
+        } catch { /* ignore */ }
+
         if (err?.issues) {
             return NextResponse.json(
                 { ok: false, error: "Validation failed", details: err.issues },
@@ -191,6 +214,6 @@ export async function POST(req: NextRequest) {
             );
         }
         console.error("POST /riders error:", err);
-        return NextResponse.json({ ok: false, error: "Failed to create rider" }, { status: 500 });
+        return NextResponse.json({ ok: false, error: err?.message || "Failed to create rider" }, { status: 500 });
     }
 }

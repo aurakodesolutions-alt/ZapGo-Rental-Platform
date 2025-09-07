@@ -1,42 +1,41 @@
-"use client";
+'use client';
 
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-    Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
-} from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, Fingerprint, ShipWheel } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CreditCard, Fingerprint, ShipWheel, UserRound } from 'lucide-react';
 
 /* ------------------------------- Schema ------------------------------- */
 export const RiderFormSchema = z.object({
     // contact
-    fullName: z.string().min(3, "Full name must be at least 3 characters."),
-    phone: z.string().regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile."),
-    email: z.string().email("Enter a valid email."),
+    fullName: z.string().min(3, 'Full name must be at least 3 characters.'),
+    phone: z.string().regex(/^[6-9]\d{9}$/, 'Enter a valid 10-digit Indian mobile.'),
+    email: z.string().email('Enter a valid email.'),
+
+    // Optional password (admin reset). Make it required on "create" page if you like.
+    password: z.string().min(6, 'Password must be at least 6 characters.').optional(),
 
     // kyc
-    aadhaar: z.string().regex(/^\d{12}$/, "Aadhaar must be 12 digits"),
-    pan: z
-        .string()
-        .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i, "Invalid PAN format")
-        .transform((v) => v.toUpperCase()),
+    aadhaar: z.string().regex(/^\d{12}$/, 'Aadhaar must be 12 digits'),
+    pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i, 'Invalid PAN format').transform((v) => v.toUpperCase()),
     dl: z.string().optional(),
 
-    // file inputs (handled by your upload route later)
+    // files (uploaded via /public/riders/upload)
     aadhaarFile: z.any().optional(),
     panFile: z.any().optional(),
     dlFile: z.any().optional(),
+    selfieFile: z.any().optional(),
 });
 
 export type RiderFormValues = z.infer<typeof RiderFormSchema>;
 
 type RiderFormProps = {
-    mode?: "create" | "edit";
+    mode?: 'create' | 'edit';
     initialValues?: Partial<RiderFormValues>;
     submitting?: boolean;
     onSubmitAction?: (values: RiderFormValues) => Promise<void> | void;
@@ -44,7 +43,7 @@ type RiderFormProps = {
 };
 
 export function RiderForm({
-                              mode = "create",
+                              mode = 'create',
                               initialValues,
                               submitting,
                               onSubmitAction,
@@ -53,18 +52,17 @@ export function RiderForm({
     const form = useForm<RiderFormValues>({
         resolver: zodResolver(RiderFormSchema),
         defaultValues: {
-            // contact
-            fullName: "",
-            phone: "",
-            email: "",
-            // kyc
-            aadhaar: "",
-            pan: "",
-            dl: "",
-            // files
+            fullName: '',
+            phone: '',
+            email: '',
+            password: '',
+            aadhaar: '',
+            pan: '',
+            dl: '',
             aadhaarFile: undefined,
             panFile: undefined,
             dlFile: undefined,
+            selfieFile: undefined,
             ...initialValues,
         },
     });
@@ -77,7 +75,7 @@ export function RiderForm({
                 {/* CONTACT */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Contact Information</CardTitle>
+                        <CardTitle>Contact & Account</CardTitle>
                     </CardHeader>
                     <CardContent className="grid gap-4 md:grid-cols-2">
                         <FormField
@@ -119,6 +117,23 @@ export function RiderForm({
                                 </FormItem>
                             )}
                         />
+
+                        {/* Optional password (reset on edit) */}
+                        <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                                <FormItem className="md:col-span-2">
+                                    <FormLabel>
+                                        {mode === 'edit' ? 'Set New Password (optional)' : 'Password'}
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input type="password" placeholder="At least 6 characters" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </CardContent>
                 </Card>
 
@@ -126,7 +141,7 @@ export function RiderForm({
                 <div className="space-y-3">
                     <h2 className="text-xl font-semibold">KYC Details</h2>
                     <p className="text-sm text-muted-foreground">
-                        Aadhaar & PAN required; Driving License is optional (you can capture it later).
+                        Aadhaar & PAN required; Driving License is optional.
                     </p>
                 </div>
 
@@ -214,46 +229,75 @@ export function RiderForm({
                     </Card>
                 </div>
 
-                {/* DL (optional) */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <ShipWheel className="text-primary" /> Driving License (Optional)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid md:grid-cols-2 gap-4">
-                        <FormField
-                            control={form.control}
-                            name="dl"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>DL Number</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="DL-XXXX-XXXXXXX" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="dlFile"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Upload DL (image/pdf)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="file"
-                                            accept="image/*,application/pdf"
-                                            onChange={(e) => field.onChange(e.target.files?.[0])}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </CardContent>
-                </Card>
+                {/* DL + Selfie */}
+                <div className="grid gap-6 md:grid-cols-2">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <ShipWheel className="text-primary" /> Driving License (Optional)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="dl"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>DL Number</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="DL-XXXX-XXXXXXX" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="dlFile"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Upload DL (image/pdf)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="file"
+                                                accept="image/*,application/pdf"
+                                                onChange={(e) => field.onChange(e.target.files?.[0])}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <UserRound className="text-primary" /> Selfie (Face Photo)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid gap-4">
+                            <FormField
+                                control={form.control}
+                                name="selfieFile"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Upload Selfie (image)</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => field.onChange(e.target.files?.[0])}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </CardContent>
+                    </Card>
+                </div>
 
                 {/* ACTIONS */}
                 <div className="flex justify-end gap-2">
@@ -261,7 +305,7 @@ export function RiderForm({
                         Cancel
                     </Button>
                     <Button type="submit" disabled={submitting}>
-                        {submitting ? (mode === "edit" ? "Saving…" : "Creating…") : (mode === "edit" ? "Save Changes" : "Create Rider")}
+                        {submitting ? (mode === 'edit' ? 'Saving…' : 'Creating…') : mode === 'edit' ? 'Save Changes' : 'Create Rider'}
                     </Button>
                 </div>
             </form>

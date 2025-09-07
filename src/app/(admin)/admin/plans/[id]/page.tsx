@@ -1,15 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import {useParams, useRouter} from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Pencil, Eye, Trash2, ArrowLeft } from 'lucide-react';
+import {
+    ArrowLeft,
+    Pencil,
+    Eye,
+    Trash2,
+    FileCheck2,
+    Banknote,
+    Shield,
+    Hash,
+    ListChecks,
+    CalendarClock,
+} from 'lucide-react';
 
 import { PageHeader } from '@/components/admin/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PlanForm } from '@/components/admin/forms/plan-form';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -22,13 +32,68 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+import { PlanForm } from '@/components/admin/forms/plan-form';
 import { usePlan } from '@/hooks/api/use-plans';
 
+/* ----------------------------- Helpers ----------------------------- */
+
+function formatINR(n?: number | null) {
+    if (typeof n !== 'number') return '—';
+    return `₹${n.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+}
+
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+    return !!v && typeof v === 'object' && !Array.isArray(v);
+}
+
+function SafeDate({ value }: { value?: string | number | Date | null }) {
+    if (!value) return <>—</>;
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return <>—</>;
+    return <>{d.toLocaleString()}</>;
+}
+
+/* Reusable mini components (no hooks) */
+
+function StatCard({
+                      icon: Icon,
+                      label,
+                      value,
+                  }: {
+    icon: any;
+    label: string;
+    value: string | number;
+}) {
+    return (
+        <Card className="rounded-2xl">
+            <CardContent className="flex items-center gap-3 p-4">
+                <div className="rounded-xl p-3 ring-1 bg-muted/40 text-muted-foreground">
+                    <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                    <div className="text-xs text-muted-foreground">{label}</div>
+                    <div className="text-base font-semibold">{value}</div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function KVRow({ k, v }: { k: string; v: string | number | null | undefined }) {
+    return (
+        <div className="flex items-start justify-between gap-4 rounded-lg border p-3">
+            <div className="text-xs text-muted-foreground">{k}</div>
+            <div className="text-sm font-medium">{v ?? '—'}</div>
+        </div>
+    );
+}
+
+/* ----------------------------- Page ----------------------------- */
+
 export default function PlanDetailPage() {
-    // const params = useParams();
     const router = useRouter();
-    const params = useParams<{ id: string }>();          // ✅ useParams in Client Components
-    const id = Number(params?.id) ;                   // route param (string)
+    const params = useParams<{ id: string }>();
+    const id = Number(params?.id);
     const [editing, setEditing] = useState(false);
 
     const { plan, isLoading, isError, remove } = usePlan(id);
@@ -48,12 +113,17 @@ export default function PlanDetailPage() {
                 Failed to load plan.
                 <div className="mt-3">
                     <Button variant="outline" asChild>
-                        <Link href="/admin/plans"><ArrowLeft className="mr-2 h-4 w-4" /> Back</Link>
+                        <Link href="/admin/plans">
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                        </Link>
                     </Button>
                 </div>
             </div>
         );
     }
+
+    const docs = Array.isArray(plan.requiredDocuments) ? plan.requiredDocuments.filter(Boolean) : [];
+    const features = plan.features;
 
     return (
         <div className="space-y-6">
@@ -63,7 +133,9 @@ export default function PlanDetailPage() {
             >
                 <div className="flex items-center gap-2">
                     <Button variant="outline" asChild>
-                        <Link href="/admin/plans"><ArrowLeft className="mr-2 h-4 w-4" /> Back</Link>
+                        <Link href="/admin/plans">
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                        </Link>
                     </Button>
 
                     {!editing ? (
@@ -86,7 +158,7 @@ export default function PlanDetailPage() {
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Delete plan “{plan.planName}”?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This action cannot be undone. Existing rentals won’t be affected, but the plan will be removed from creation flows.
+                                    This action cannot be undone. Existing rentals won’t be affected, but this plan will be removed from creation flows.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -106,73 +178,120 @@ export default function PlanDetailPage() {
                 </div>
             </PageHeader>
 
-            {!editing ? (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Plan Details</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid gap-6 md:grid-cols-2">
-                            <div>
-                                <div className="text-sm text-muted-foreground">Plan Name</div>
-                                <div className="mt-1 font-medium">{plan.planName}</div>
-                            </div>
+            {/* Stat strip */}
+            <div className="grid gap-4 md:grid-cols-4">
+                <StatCard icon={Banknote} label="Joining Fee" value={formatINR(plan.joiningFees)} />
+                <StatCard icon={Shield} label="Security Deposit" value={formatINR(plan.securityDeposit)} />
+                <StatCard icon={FileCheck2} label="Required Docs" value={docs.length} />
+                <StatCard icon={Hash} label="Plan ID" value={plan.planId} />
+            </div>
 
-                            <div>
-                                <div className="text-sm text-muted-foreground">Required Documents</div>
-                                <div className="mt-2 flex flex-wrap gap-1">
-                                    {(plan.requiredDocuments ?? []).length ? (
-                                        plan.requiredDocuments!.map((d) => (
-                                            <Badge key={d} variant="secondary">{d}</Badge>
-                                        ))
-                                    ) : (
-                                        <Badge variant="outline">None</Badge>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="grid gap-6 md:grid-cols-2">
-                            <div>
-                                <div className="text-sm text-muted-foreground">Features</div>
-                                <div className="mt-2">
-                                {Array.isArray(plan.features) ? (
+            {!editing ? (
+                <div className="grid gap-6 lg:grid-cols-3">
+                    {/* Left: Overview + Documents */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Overview */}
+                        <Card className="rounded-2xl">
+                            <CardHeader>
+                                <CardTitle>Overview</CardTitle>
+                                <CardDescription>Quick reference information for this plan.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="grid gap-4 sm:grid-cols-2">
+                                <KVRow k="Plan Name" v={plan.planName} />
+                                <KVRow k="Plan ID" v={plan.planId} />
+                                <KVRow k="Joining Fees" v={formatINR(plan.joiningFees)} />
+                                <KVRow k="Security Deposit" v={formatINR(plan.securityDeposit)} />
+                            </CardContent>
+                        </Card>
+
+                        {/* Required Documents */}
+                        <Card className="rounded-2xl">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <ListChecks className="h-4 w-4 text-muted-foreground" />
+                                    Required Documents
+                                </CardTitle>
+                                <CardDescription>Documents that must be captured from the rider.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {docs.length ? (
+                                    <div className="flex flex-wrap gap-2">
+                                        {docs.map((d) => (
+                                            <Badge key={d} variant="secondary">
+                                                {d}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-muted-foreground">No required documents.</p>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Right: Features + Timestamps */}
+                    <div className="space-y-6">
+                        {/* Features */}
+                        <Card className="rounded-2xl">
+                            <CardHeader>
+                                <CardTitle>Features</CardTitle>
+                                <CardDescription>Included benefits & plan attributes.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {Array.isArray(features) && features.length > 0 ? (
                                     <ul className="list-disc pl-5 space-y-1">
-                                        {plan.features.map((f: any, i: number) => (
-                                            <li key={i} className="text-sm">{String(f)}</li>
+                                        {features.map((f: any, i: number) => (
+                                            <li key={i} className="text-sm">
+                                                {String(f)}
+                                            </li>
                                         ))}
                                     </ul>
-                                ) : typeof plan.features === 'object' && plan.features ? (
-                                    <pre className="rounded-md border bg-muted/40 p-3 text-xs overflow-auto">
-{JSON.stringify(plan.features, null, 2)}
-                  </pre>
-                                ) : plan.features ? (
-                                    <div className="text-sm">{String(plan.features)}</div>
+                                ) : isPlainObject(features) ? (
+                                    <div className="grid gap-2">
+                                        {Object.entries(features as Record<string, unknown>).map(([k, v]) => (
+                                            <div key={k} className="flex items-start justify-between gap-4 rounded-md border p-2">
+                                                <span className="text-xs text-muted-foreground">{k}</span>
+                                                <span className="text-sm font-medium">
+                          {typeof v === 'string' || typeof v === 'number' ? String(v) : JSON.stringify(v)}
+                        </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : features ? (
+                                    <div className="text-sm">{String(features)}</div>
                                 ) : (
-                                    <div className="text-sm text-muted-foreground">—</div>
+                                    <p className="text-sm text-muted-foreground">No features specified.</p>
                                 )}
-                            </div>
-                            </div>
-                            <div>
-                                <div className="text-sm text-muted-foreground">Joining & Security Deposit</div>
-                                <div className="mt-2">
-                                    <Badge variant="secondary">₹{plan.joiningFees?.toLocaleString("en-IN")}</Badge> & <Badge variant="secondary">₹{plan.securityDeposit?.toLocaleString("en-IN")}</Badge>
+                            </CardContent>
+                        </Card>
+
+                        {/* Timestamps */}
+                        <Card className="rounded-2xl">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <CalendarClock className="h-4 w-4 text-muted-foreground" />
+                                    Timeline
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid gap-3">
+                                <div className="flex items-center justify-between rounded-lg border p-3">
+                                    <div className="text-xs text-muted-foreground">Created</div>
+                                    <div className="text-sm font-medium">
+                                        <SafeDate value={plan.createdAt} />
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div className="grid gap-6 md:grid-cols-2">
-                            <div>
-                                <div className="text-sm text-muted-foreground">Created</div>
-                                <div className="mt-1 text-sm">{new Date(plan.createdAt).toLocaleString()}</div>
-                            </div>
-                            <div>
-                                <div className="text-sm text-muted-foreground">Last Updated</div>
-                                <div className="mt-1 text-sm">{new Date(plan.updatedAt).toLocaleString()}</div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                                <div className="flex items-center justify-between rounded-lg border p-3">
+                                    <div className="text-xs text-muted-foreground">Last Updated</div>
+                                    <div className="text-sm font-medium">
+                                        <SafeDate value={plan.updatedAt} />
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
             ) : (
-                <Card>
+                <Card className="rounded-2xl">
                     <CardHeader>
                         <CardTitle>Edit Plan</CardTitle>
                     </CardHeader>

@@ -29,6 +29,7 @@ export interface RiderKyc {
 
     drivingLicenseNumber?: string | null;
     drivingLicenseImageUrl?: string | null;
+    selfieImageUrl?: string;
 
     proPlan: boolean;
 
@@ -116,7 +117,7 @@ export type PlanUpdateInput = Partial<PlanCreateInput>;
 export type VehicleStatus = "Available" | "Rented";
 
 export interface Vehicle {
-    id: number;
+    vehicleId: number;
 
     // Relations
     planId: number;

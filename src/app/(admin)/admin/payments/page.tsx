@@ -1,89 +1,196 @@
+"use client";
 
-'use client';
+import React from "react";
+import Link from "next/link";
+import { PageHeader } from "@/components/admin/page-header";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FileDown } from "lucide-react";
+import { formatINR, formatIST } from "@/lib/format";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PageHeader } from '@/components/admin/page-header';
-import { formatINR, formatIST } from '@/lib/format';
-import { Badge } from '@/components/ui/badge';
-import { FileDown, PlusCircle } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import * as mockApi from '@/lib/mock-data';
-import type { Payment } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
+type Row = {
+    paymentId: number;
+    rentalId: number;
+    rider: { riderId: number; fullName: string; phone: string };
+    amount: number;
+    paymentMethod: string;
+    txnRef?: string | null;
+    transactionDate: string;
+    transactionStatus: string;
+};
 
 export default function PaymentsPage() {
-    const [payments, setPayments] = useState<Payment[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
+    const [rows, setRows] = React.useState<Row[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [q, setQ] = React.useState("");
+    const [method, setMethod] = React.useState<string>("");
+    const [status, setStatus] = React.useState<string>("");
 
-    useEffect(() => {
-        setLoading(true);
+    // simple debounce
+    const debouncedQ = useDebounce(q, 300);
 
-        setPayments(mockApi.mockPayments);
-        setLoading(false);
-    }, [search]);
+    // inside useEffect – build a relative URL
+    React.useEffect(() => {
+        let aborted = false;
+        async function load() {
+            setLoading(true);
+            try {
+                const params = new URLSearchParams();
+                if (debouncedQ) params.set("q", debouncedQ);
+                if (method) params.set("method", method);
+                if (status) params.set("status", status);
+                params.set("limit", "100");
+
+                const r = await fetch(`/api/v1/admin/payments?${params.toString()}`, { cache: "no-store" });
+                const j = await r.json();
+                if (!aborted && r.ok && j?.ok) setRows(j.data);
+            } catch {
+                if (!aborted) setRows([]);
+            } finally {
+                if (!aborted) setLoading(false);
+            }
+        }
+        load();
+        return () => { aborted = true; };
+    }, [debouncedQ, method, status]);
+
+// export CSV href – also build relative URL
+    const exportCsvHref = React.useMemo(() => {
+        const params = new URLSearchParams();
+        if (q) params.set("q", q);
+        if (method) params.set("method", method);
+        if (status) params.set("status", status);
+        params.set("format", "csv");
+        return `/api/v1/admin/payments?${params.toString()}`;
+    }, [q, method, status]);
+
 
     return (
         <>
             <PageHeader title="Payments" description="View and manage all payments.">
-                <Button variant="outline"><FileDown className="mr-2 h-4 w-4" /> Export CSV</Button>
-                <Button asChild><Link href="/admin/payments/new"><PlusCircle className="mr-2 h-4 w-4" /> New Payment</Link></Button>
+                <Button asChild variant="outline">
+                    <a href={exportCsvHref}><FileDown className="mr-2 h-4 w-4" /> Export CSV</a>
+                </Button>
             </PageHeader>
+
             <Card>
-                <CardContent>
-                    <div className="py-4">
+                <CardContent className="pt-6">
+                    {/* Filters */}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-4">
                         <Input
-                            placeholder="Search by rider or rental ID..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            className="sm:w-[360px]"
+                            placeholder="Search rider / phone / txn ref / rental id…"
+                            value={q}
+                            onChange={(e) => setQ(e.target.value)}
                         />
+                        <div className="flex gap-2">
+                            <select
+                                className="h-9 rounded-md border bg-background px-2 text-sm"
+                                value={method}
+                                onChange={(e) => setMethod(e.target.value)}
+                            >
+                                <option value="">All Methods</option>
+                                <option value="CASH">Cash</option>
+                                <option value="UPI">UPI</option>
+                                <option value="CARD">Card</option>
+                                <option value="CASHFREE">Cashfree</option>
+                            </select>
+                            <select
+                                className="h-9 rounded-md border bg-background px-2 text-sm"
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                            >
+                                <option value="">All Status</option>
+                                <option value="SUCCESS">Success</option>
+                                <option value="PENDING">Pending</option>
+                                <option value="FAILED">Failed</option>
+                            </select>
+                        </div>
                     </div>
+
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Payment ID</TableHead>
+                                <TableHead>Payment</TableHead>
                                 <TableHead>Rider</TableHead>
-                                <TableHead>Rental ID</TableHead>
+                                <TableHead>Rental</TableHead>
                                 <TableHead>Method</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Txn Ref</TableHead>
                                 <TableHead>Date</TableHead>
                                 <TableHead className="text-right">Amount</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {loading ? (
-                                Array.from({ length: 10 }).map((_, i) => (
-                                    <TableRow key={i}><TableCell colSpan={6}><Skeleton className="h-8 w-full" /></TableCell></TableRow>
+                            {loading
+                                ? Array.from({ length: 10 }).map((_, i) => (
+                                    <TableRow key={i}>
+                                        <TableCell colSpan={8}>
+                                            <Skeleton className="h-8 w-full" />
+                                        </TableCell>
+                                    </TableRow>
                                 ))
-                            ) : payments.length > 0 ? payments.map((payment) => (
-                                <TableRow key={payment.id}>
-                                    <TableCell className="font-medium">
-                                        <Link href={`/admin/payments/${payment.id}`} className="hover:underline text-primary">
-                                            #{payment.id.substring(0, 7)}...
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell>{payment?.rider?.fullName}</TableCell>
-                                    <TableCell>
-                                        <Link href={`/admin/rentals/${payment.rentalId}`} className="hover:underline">
-                                            #{payment.rentalId.substring(0, 7)}...
-                                        </Link>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="secondary">{payment.method.toUpperCase()}</Badge>
-                                    </TableCell>
-                                    <TableCell>{formatIST(payment.transactionDate, 'dd MMM yyyy')}</TableCell>
-                                    <TableCell className="text-right font-code">{formatINR(payment.amount)}</TableCell>
-                                </TableRow>
-                            )) : (
-                                <TableRow><TableCell colSpan={6} className="text-center">No payments found.</TableCell></TableRow>
-                            )}
+                                : rows.length > 0
+                                    ? rows.map((p) => (
+                                        <TableRow key={p.paymentId}>
+                                            <TableCell className="font-medium">#{p.paymentId}</TableCell>
+                                            <TableCell>
+                                                <div className="whitespace-nowrap">
+                                                    {p.rider.fullName}
+                                                    <div className="text-xs text-muted-foreground">{p.rider.phone}</div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Link href={`/admin/rentals/${p.rentalId}`} className="text-primary hover:underline">
+                                                    #{p.rentalId}
+                                                </Link>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant="secondary">{p.paymentMethod}</Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant={
+                                                        p.transactionStatus === "SUCCESS"
+                                                            ? "default"
+                                                            : p.transactionStatus === "PENDING"
+                                                                ? "secondary"
+                                                                : "destructive"
+                                                    }
+                                                >
+                                                    {p.transactionStatus}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="max-w-[220px] truncate">{p.txnRef || "—"}</TableCell>
+                                            <TableCell>{formatIST(p.transactionDate, "dd MMM yyyy, hh:mm a")}</TableCell>
+                                            <TableCell className="text-right font-code">{formatINR(p.amount)}</TableCell>
+                                        </TableRow>
+                                    ))
+                                    : (
+                                        <TableRow>
+                                            <TableCell colSpan={8} className="text-center py-12 text-sm text-muted-foreground">
+                                                No payments found.
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
                         </TableBody>
                     </Table>
                 </CardContent>
             </Card>
         </>
     );
+}
+
+/* -------- tiny debounce hook -------- */
+function useDebounce<T>(value: T, ms = 300) {
+    const [v, setV] = React.useState(value);
+    React.useEffect(() => {
+        const id = setTimeout(() => setV(value), ms);
+        return () => clearTimeout(id);
+    }, [value, ms]);
+    return v;
 }

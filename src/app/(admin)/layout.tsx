@@ -5,6 +5,7 @@ import AuthProvider from "@/lib/auth/auth-provider";
 import {Sidebar} from "@/components/admin/layout/sidebar";
 import {Topbar} from "@/components/admin/layout/topbar";
 import {Footer} from "@/components/admin/layout/footer";
+import FloatingSupport from "@/components/admin/floating-support";
 // import { DevTools } from '@/components/DevTools';
 
 export const metadata: Metadata = {
@@ -47,6 +48,7 @@ export default function RootLayout({
             </div>
         </AuthProvider>
         <Toaster />
+        <FloatingSupport />
         {/*<DevTools />*/}
         </body>
         </html>

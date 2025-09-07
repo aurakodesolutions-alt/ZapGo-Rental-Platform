@@ -121,11 +121,11 @@ export default function VehiclesPage() {
 
                             {/* Data rows */}
                             {filtered.map((v) => (
-                                <TableRow key={v.id}>
+                                <TableRow key={v.vehicleId}>
                                     <TableCell className="font-medium">
                                         <div className="flex flex-col">
                                             <span>{v.uniqueCode}</span>
-                                            <span className="text-xs text-muted-foreground">#{v.id}</span>
+                                            <span className="text-xs text-muted-foreground">#{v.vehicleId}</span>
                                         </div>
                                     </TableCell>
 
@@ -166,7 +166,7 @@ export default function VehiclesPage() {
 
                                     <TableCell className="text-right">
                                         <Button variant="outline" size="sm" asChild>
-                                            <Link href={`/admin/vehicles/${v.id}`}>View Details</Link>
+                                            <Link href={`/admin/vehicles/${v.vehicleId}`}>View Details</Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

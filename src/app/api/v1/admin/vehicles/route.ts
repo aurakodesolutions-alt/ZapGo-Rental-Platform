@@ -32,6 +32,8 @@ function rowToVehicle(row: any) {
                     row.P_RequiredDocuments != null
                         ? (parseDbJson<string[]>(row.P_RequiredDocuments) ?? [])
                         : undefined,
+                joiningFees: row.P_JoiningFees != null,
+                securityDeposit: row.P_SecurityDeposit != null,
                 createdAt: row.P_CreatedAt
                     ? new Date(row.P_CreatedAt).toISOString()
                     : undefined,
@@ -174,6 +176,8 @@ export async function GET(req: NextRequest) {
                 p.PlanName,
                 p.Features          AS P_Features,
                 p.RequiredDocuments AS P_RequiredDocuments,
+                p.JoiningFee AS P_JoiningFees,
+                p.SecurityDeposit AS P_SecurityDeposit,
                 p.CreatedAt         AS P_CreatedAt,
                 p.UpdatedAt         AS P_UpdatedAt
 
