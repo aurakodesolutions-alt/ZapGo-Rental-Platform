@@ -6,8 +6,8 @@ export const site = {
     shortName: "ZapGo",
     description:
         "Electric scooter rentals for commuters in Siliguri. Transparent pricing, instant KYC, zero fuel, zero hassle.",
-    url: "https://www.zapgo.rental",      // ← set your prod URL
-    ogImage: "/og/og-cover.png",             // 1200x630
+    url: "https://zap-go-rental-platform.vercel.app",      // ← set your prod URL
+    ogImage: "/images/hero_11.png",             // 1200x630
     twitter: "@zapgorental",                 // ← if you have one
     address: {
         street: "Holding No. 100/C/32, Sarada Pally, Ghoghomali Main Road",
