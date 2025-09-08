@@ -304,7 +304,7 @@ export default function OverviewTab() {
                                 <div className="grid grid-cols-2 gap-2 text-sm">
                                     <div>Rate/Day</div>
                                     <div className="text-right font-medium">
-                                        ₹{formatINR(current.ratePerDay)}
+                                        ₹{formatINR(current.rentPerDay)}
                                     </div>
                                     <div>Paid</div>
                                     <div className="text-right font-medium">

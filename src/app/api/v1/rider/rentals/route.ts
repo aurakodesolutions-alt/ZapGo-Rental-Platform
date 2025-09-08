@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
         .query(`
       SELECT r.RentalId, r.Status, r.StartDate, r.ExpectedReturnDate, r.ActualReturnDate,
              r.PayableTotal, r.PaidTotal, r.BalanceDue, r.CreatedAt,
-             v.VehicleId, v.Model, v.VehicleImagesURLs,
+             v.VehicleId, v.Model, v.VehicleImagesURLs, v.RentPerDay
              p.PlanId, p.PlanName
       FROM Rentals r
       JOIN Vehicles v ON v.VehicleId=r.VehicleId
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
         payableTotal: Number(x.PayableTotal || 0),
         paidTotal: Number(x.PaidTotal || 0),
         balanceDue: Number(x.BalanceDue || 0),
-        vehicle: { id: x.VehicleId, model: x.Model, images: normalize(x.VehicleImagesURLs) },
+        vehicle: { id: x.VehicleId, model: x.Model, images: normalize(x.VehicleImagesURLs), rentPerDay: x.RentPerDay },
         plan: { id: x.PlanId, name: x.PlanName },
     })));
 }
