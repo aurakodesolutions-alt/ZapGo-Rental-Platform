@@ -54,11 +54,11 @@ type UiRental = {
         id: number | string;
         model: string;
         planName?: string;
+        rentPerDay: number;
         image?: string;
     };
     startDate: string;
     endDate: string;
-    rentPerDay: number;
     deposit: number;
     paidTotal: number;
     balanceDue: number;
@@ -117,11 +117,12 @@ function mapRentals(api: any): { items: UiRental[] } {
                 id: vehicle.id || r.VehicleId,
                 model: vehicle.model || r.Model || "Scooter",
                 planName: vehicle.planName || r.plan?.name || r.PlanName || undefined,
+                rentPerDay: Number(r.rentPerDay || r.RatePerDay || 0),
                 image: firstImage,
             },
             startDate: r.startDate || r.StartDate,
             endDate: r.endDate || r.ExpectedReturnDate || r.EndDate,
-            rentPerDay: Number(r.rentPerDay || r.RatePerDay || 0),
+
             deposit: Number(r.deposit || r.Deposit || 0),
             paidTotal: Number(r.paidTotal || r.PaidTotal || 0),
             balanceDue: Number(r.balanceDue || r.BalanceDue || 0),
@@ -304,7 +305,7 @@ export default function OverviewTab() {
                                 <div className="grid grid-cols-2 gap-2 text-sm">
                                     <div>Rate/Day</div>
                                     <div className="text-right font-medium">
-                                        ₹{formatINR(current.rentPerDay)}
+                                        ₹{formatINR(current.vehicle?.rentPerDay)}
                                     </div>
                                     <div>Paid</div>
                                     <div className="text-right font-medium">
