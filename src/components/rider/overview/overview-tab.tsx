@@ -117,7 +117,8 @@ function mapRentals(api: any): { items: UiRental[] } {
                 id: vehicle.id || r.VehicleId,
                 model: vehicle.model || r.Model || "Scooter",
                 planName: vehicle.planName || r.plan?.name || r.PlanName || undefined,
-                rentPerDay: Number(r.rentPerDay || r.RatePerDay || 0),
+                // CORRECTED LINE: Access rentPerDay from the vehicle object
+                rentPerDay: Number(vehicle.rentPerDay || r.RatePerDay || 0),
                 image: firstImage,
             },
             startDate: r.startDate || r.StartDate,
@@ -208,7 +209,7 @@ export default function OverviewTab() {
         setReturnOpen(false);
         mutate();
     };
-
+    console.log(current)
     return (
         <div className="space-y-6">
             {/* KPIs */}
@@ -305,7 +306,7 @@ export default function OverviewTab() {
                                 <div className="grid grid-cols-2 gap-2 text-sm">
                                     <div>Rate/Day</div>
                                     <div className="text-right font-medium">
-                                        ₹{formatINR(current.vehicle?.rentPerDay)}
+                                        ₹{current.vehicle?.rentPerDay}
                                     </div>
                                     <div>Paid</div>
                                     <div className="text-right font-medium">
