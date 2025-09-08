@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
         .query(`
       SELECT r.RentalId, r.Status, r.StartDate, r.ExpectedReturnDate, r.ActualReturnDate,
              r.PayableTotal, r.PaidTotal, r.BalanceDue, r.CreatedAt,
-             v.VehicleId, v.Model, v.VehicleImagesURLs, v.RentPerDay
+             v.VehicleId, v.Model, v.VehicleImagesURLs, v.RentPerDay,
              p.PlanId, p.PlanName
       FROM Rentals r
       JOIN Vehicles v ON v.VehicleId=r.VehicleId

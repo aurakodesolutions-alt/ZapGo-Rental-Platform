@@ -58,7 +58,7 @@ type UiRental = {
     };
     startDate: string;
     endDate: string;
-    ratePerDay: number;
+    rentPerDay: number;
     deposit: number;
     paidTotal: number;
     balanceDue: number;
@@ -121,7 +121,7 @@ function mapRentals(api: any): { items: UiRental[] } {
             },
             startDate: r.startDate || r.StartDate,
             endDate: r.endDate || r.ExpectedReturnDate || r.EndDate,
-            ratePerDay: Number(r.ratePerDay || r.RatePerDay || 0),
+            rentPerDay: Number(r.rentPerDay || r.RatePerDay || 0),
             deposit: Number(r.deposit || r.Deposit || 0),
             paidTotal: Number(r.paidTotal || r.PaidTotal || 0),
             balanceDue: Number(r.balanceDue || r.BalanceDue || 0),
