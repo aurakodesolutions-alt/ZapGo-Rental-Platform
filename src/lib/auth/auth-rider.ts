@@ -16,7 +16,7 @@ export async function issueRiderSession(res: NextResponse, rid: number, name: st
 
     res.cookies.set(COOKIE, token, {
         httpOnly: true,
-        secure: true,
+        secure: false,
         sameSite: "lax",
         path: "/",
         maxAge: MAX_AGE,
