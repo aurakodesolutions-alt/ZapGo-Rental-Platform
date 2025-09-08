@@ -27,20 +27,20 @@ const fontCode = Roboto_Mono({ subsets: ["latin"], display: "swap", variable: "-
 export const metadata: Metadata = {
     metadataBase: new URL(siteUrl),
     title: {
-        default: "ZapGo - Your City, Your Ride",
+        default: "ZapGo Rental - Your City, Your Ride",
         template: "%s | ZapGo",
     },
     description:
         "Fast, affordable, and eco-friendly electric scooter rentals. Book your ride in seconds and unlock your city with ZapGo.",
-    keywords: ["electric scooter", "scooter rental", "urban mobility", "eco-friendly transport", "ZapGo"],
+    keywords: ["electric scooter", "scooter rental", "urban mobility", "eco-friendly transport", "ZapGo", "zapgo","zapgo rental","zapgo rental in siliguri", "electric scooter rental in siliguri", "Siliguri Zapgo Rental", "Siliguri Electric Scooter Rentals"],
     openGraph: {
-        title: "ZapGo - Electric Scooter Rentals",
+        title: "ZapGo Rental - Electric Scooter Rentals",
         description: "The easiest way to get around the city. Fast, fun, and eco-friendly.",
         url: siteUrl,
         siteName: "ZapGo",
         images: [
             {
-                url: new URL("/og-image.png", siteUrl).toString(),
+                url: new URL("/images/hero_2.png", siteUrl).toString(),
                 width: 1200,
                 height: 630,
                 alt: "A ZapGo electric scooter parked in a vibrant city street.",
@@ -51,10 +51,10 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "ZapGo - Your City, Your Ride",
+        title: "ZapGo Rental - Your City, Your Ride",
         description: "Unlock your city with ZapGo. Fast, affordable, and eco-friendly scooter rentals.",
         creator: "@zapgo",
-        images: [new URL("/twitter-image.png", siteUrl).toString()],
+        images: [new URL("/images/hero_11.png", siteUrl).toString()],
     },
     robots: {
         index: true,
@@ -71,10 +71,10 @@ export const metadata: Metadata = {
     icons: {
         icon: [
             { url: "/favicon.ico" },
-            { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-            { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+            { url: "/logo.png", sizes: "192x192", type: "image/png" },
+            { url: "/logo.png", sizes: "512x512", type: "image/png" },
         ],
-        apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+        apple: [{ url: "/logo.png", sizes: "180x180", type: "image/png" }],
     },
     alternates: { canonical: siteUrl },
 };
@@ -88,7 +88,7 @@ const orgSchema = {
     logo: new URL("/rental_logo.png", siteUrl).toString(),
     contactPoint: {
         "@type": "ContactPoint",
-        telephone: "+91-900-000-0000",
+        telephone: "+91-637-458-0290",
         contactType: "customer service",
         areaServed: "IN",
         availableLanguage: ["en", "hi"],
@@ -101,7 +101,7 @@ const localBusinessSchema = {
     "@id": `${siteUrl}#local`,
     name: "ZapGo Rental - Siliguri",
     url: siteUrl,
-    image: new URL("/og-image.png", siteUrl).toString(),
+    image: new URL("/logo.png", siteUrl).toString(),
     address: {
         "@type": "PostalAddress",
         streetAddress: "Holding No. 100/C/32, Sarada Pally, Ghoghomali Main Road",
@@ -110,7 +110,7 @@ const localBusinessSchema = {
         postalCode: "734006",
         addressCountry: "IN",
     },
-    telephone: "+91-900-000-0000",
+    telephone: "+91-637-458-0290",
     openingHours: "Mo-Sa 10:00-19:00",
     areaServed: "Siliguri",
 };
@@ -120,7 +120,7 @@ const webSiteSchema = {
     "@type": "WebSite",
     "@id": `${siteUrl}#website`,
     url: siteUrl,
-    name: "ZapGo",
+    name: "ZapGo Rental - Siliguri",
     potentialAction: {
         "@type": "SearchAction",
         target: `${siteUrl}/search?q={search_term_string}`,
