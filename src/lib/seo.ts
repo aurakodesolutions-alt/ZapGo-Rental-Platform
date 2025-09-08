@@ -6,7 +6,7 @@ export const site = {
     shortName: "ZapGo",
     description:
         "Electric scooter rentals for commuters in Siliguri. Transparent pricing, instant KYC, zero fuel, zero hassle.",
-    url: "https://zap-go-rental-platform.vercel.app",      // ← set your prod URL
+    url: "https://zapgorental.in",      // ← set your prod URL
     ogImage: "/images/hero_11.png",             // 1200x630
     twitter: "@zapgorental",                 // ← if you have one
     address: {
@@ -16,8 +16,8 @@ export const site = {
         postalCode: "734006",
         country: "IN",
     },
-    phone: "+91 00000 00000",
-    email: "support@zapgorental.com",
+    phone: "+91 63745 80290",
+    email: "info@zapgorental.in",
 };
 
 export const defaultMetadata: Metadata = {
@@ -50,9 +50,9 @@ export const defaultMetadata: Metadata = {
     icons: {
         icon: [
             { url: "/favicon.ico" },
-            { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-            { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+            { url: "/logo.png", sizes: "192x192", type: "image/png" },
+            { url: "/logo.png", sizes: "512x512", type: "image/png" },
         ],
-        apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+        apple: [{ url: "/logo.png", sizes: "180x180" }],
     },
 };

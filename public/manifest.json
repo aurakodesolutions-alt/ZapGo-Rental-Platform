@@ -1,11 +1,11 @@
 {
-  "name": "ZapGo",
+  "name": "ZapGo Rental",
   "short_name": "ZapGo",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F8FAFC",
   "theme_color": "#007BFF",
-  "description": "Rent electric scooters with ease.",
+  "description": "Rent Electric Scooters in Siliguri at best rates and very affordable prices",
   "icons": [
     {
       "src": "logo.png",
