@@ -1,21 +1,22 @@
+// app/sitemap.ts
+import type { MetadataRoute } from "next";
 import { site } from "@/lib/seo";
 
-export default async function sitemap() {
-    const now = new Date().toISOString();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+    const now = new Date();
 
-    // Try to include top vehicles for SEO (optional)
-    let vehicleUrls: { url: string; lastModified: string; changeFrequency: string; priority: number }[] = [];
+    let vehicleUrls: MetadataRoute.Sitemap = [];
     try {
         const res = await fetch(`${site.url}/api/v1/public/vehicles?page=1&pageSize=50`, {
-            // If your API needs cookies/auth, call DB directly instead. This is public.
             next: { revalidate: 60 * 60 }, // 1h
         });
+
         if (res.ok) {
             const data = await res.json();
             const items: any[] = Array.isArray(data?.items) ? data.items : [];
             vehicleUrls = items.map((v) => ({
                 url: `${site.url}/vehicles/${encodeURIComponent(v.id)}`,
-                lastModified: now,
+                lastModified: now, // replace with v.updatedAt if available
                 changeFrequency: "weekly",
                 priority: 0.7,
             }));
@@ -32,6 +33,7 @@ export default async function sitemap() {
         { url: `${site.url}/contact-us`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
         { url: `${site.url}/privacy`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
         { url: `${site.url}/legal/terms`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
+        { url: `${site.url}/legal/refund`, lastModified: now, changeFrequency: "yearly", priority: 0.4 },
         ...vehicleUrls,
     ];
 }
