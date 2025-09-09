@@ -89,7 +89,7 @@ export default function RefundPolicyPage() {
                 <div className="relative mx-auto max-w-3xl px-6 py-10 md:px-12 md:py-14 text-white">
           <span className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-3 py-1 text-xs font-medium">
             <Redo2 className="h-3.5 w-3.5" />
-            Policy
+            Refund Policy
           </span>
                     <h1
                         className="mt-3 font-headline text-3xl md:text-4xl font-bold tracking-tight leading-tight text-white"
