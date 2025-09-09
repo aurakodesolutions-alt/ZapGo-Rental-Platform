@@ -126,6 +126,7 @@ export const footerLinks = [
             { name: 'Contact Us', href: '/contact-us' },
             { name: 'FAQ', href: '/faq' },
             { name: 'Terms of Service', href: '/legal/terms' },
+            { name: 'Refund Policy', href: '/legal/refund' },
             { name: 'Privacy Policy', href: '/privacy' },
         ],
     },
