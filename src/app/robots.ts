@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
         rules: [
             {
                 userAgent: "*",
-                allow: "/(landing)/",
+                allow: "/src/app/(landing)/",
                 disallow: ["/api/"], // OK if you don’t want APIs crawled
             },
         ],
