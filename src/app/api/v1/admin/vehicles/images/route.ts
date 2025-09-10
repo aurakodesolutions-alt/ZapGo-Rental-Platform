@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
+import { ensureDir, UPLOAD_BASE_DIR, PUBLIC_UPLOAD_BASE_URL } from "@/lib/upload";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
     try {
@@ -11,25 +15,23 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ ok: false, error: "No files uploaded" }, { status: 400 });
         }
 
-        const savedUrls: string[] = [];
+        const vehicleDir = path.join(UPLOAD_BASE_DIR, "images", "vehicles");
+        await ensureDir(vehicleDir);
+
+        const urls: string[] = [];
 
         for (const file of files) {
             const bytes = Buffer.from(await file.arrayBuffer());
-            const uploadDir = path.join(process.cwd(), "public", "images", "vehicles");
-            await fs.mkdir(uploadDir, { recursive: true });
+            const filename = `${Date.now()}-${(file as any).name || "file"}`.replace(/\s+/g, "_");
+            const fullPath = path.join(vehicleDir, filename);
+            await fs.writeFile(fullPath, bytes);
 
-            const filename = `${Date.now()}-${file.name}`;
-            const filepath = path.join(uploadDir, filename);
-
-            await fs.writeFile(filepath, bytes);
-
-            // public URL
-            savedUrls.push(`/images/vehicles/${filename}`);
+            urls.push(`${PUBLIC_UPLOAD_BASE_URL}/images/vehicles/${filename}`);
         }
 
-        return NextResponse.json({ ok: true, urls: savedUrls });
-    } catch (err: any) {
-        console.error("Upload error:", err);
+        return NextResponse.json({ ok: true, urls });
+    } catch (err) {
+        console.error("Vehicle upload error:", err);
         return NextResponse.json({ ok: false, error: "Failed to upload" }, { status: 500 });
     }
 }
