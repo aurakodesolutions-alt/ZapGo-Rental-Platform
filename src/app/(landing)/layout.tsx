@@ -12,6 +12,7 @@ import AuthProvider from "@/lib/auth/auth-provider";
 import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import FloatingCta from "@/components/floating-cta";
+import LoadingScreen from "@/components/loading-screen";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:9002";
 
@@ -134,6 +135,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <head>
             {/* Use next/font — no external Google CSS needed (keeps CLS/LCP tight) */}
             <meta name="theme-color" content="#80C42F" />
+            <link rel="preload" as="video" href="/loading/loading.mp4" type="video/mp4" />
+
             {/* JSON-LD (sitewide): Organization, LocalBusiness, WebSite */}
             <Script
                 id="ld-org"
@@ -168,6 +171,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 fontCode.variable
             )}
         >
+        <LoadingScreen />
         <AuthProvider>
             <ThemeProvider>
                 <div className="relative flex min-h-screen flex-col">
