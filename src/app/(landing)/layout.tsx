@@ -13,6 +13,8 @@ import Script from "next/script";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import FloatingCta from "@/components/floating-cta";
 import LoadingScreen from "@/components/loading-screen";
+import IosInstallHint from "@/components/ios-install-hint";
+import SWRegister from "@/components/sw-register";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:9002";
 
@@ -134,33 +136,37 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <html lang="en" suppressHydrationWarning>
         <head>
             {/* Use next/font — no external Google CSS needed (keeps CLS/LCP tight) */}
-            <meta name="theme-color" content="#80C42F" />
-            <link rel="preload" as="video" href="/loading/loading.mp4" type="video/mp4" />
+            <meta name="theme-color" content="#80C42F"/>
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+            <link rel="preload" as="video" href="/loading/loading.mp4" type="video/mp4"/>
+            <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials"/>
+            <link rel="apple-touch-icon" href="/logo.png" />
 
             {/* JSON-LD (sitewide): Organization, LocalBusiness, WebSite */}
             <Script
                 id="ld-org"
                 type="application/ld+json"
                 strategy="afterInteractive"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+                dangerouslySetInnerHTML={{__html: JSON.stringify(orgSchema)}}
             />
             <Script
                 id="ld-local"
                 type="application/ld+json"
                 strategy="afterInteractive"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+                dangerouslySetInnerHTML={{__html: JSON.stringify(localBusinessSchema)}}
             />
             <Script
                 id="ld-website"
                 type="application/ld+json"
                 strategy="afterInteractive"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteSchema) }}
+                dangerouslySetInnerHTML={{__html: JSON.stringify(webSiteSchema)}}
             />
             <Script
                 id="ld-faq"
                 type="application/ld+json"
                 strategy="afterInteractive"
-                dangerouslySetInnerHTML={{ __html: {} }}
+                dangerouslySetInnerHTML={{__html: {}}}
             />
         </head>
         <body
@@ -182,12 +188,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     <FloatingCta variant={"green"} />
                     {/*<MobileCta />*/}
                 </div>
+                <IosInstallHint />
                 <Toaster />
             </ThemeProvider>
         </AuthProvider>
 
         <SpeedInsights />
-
+        <SWRegister />
         {/* Load Cashfree only after hydration; consider moving to the specific payment page for perf */}
         <Script src="https://sdk.cashfree.com/js/v3/cashfree.js" strategy="afterInteractive" />
         </body>
