@@ -22,29 +22,33 @@ export async function GET(req: NextRequest) {
         request.input("limit", sql.Int, limit);
         request.input("offset", sql.Int, offset);
 
-        // optional search
+        // Optional search across rider/vehicle/rental id
         let whereSearch = "";
         if (q) {
             request.input("q", sql.NVarChar(256), `%${q}%`);
             whereSearch = `
         AND (
-          ri.FullName LIKE @q OR v.UniqueCode LIKE @q OR v.Model LIKE @q
+          ri.FullName LIKE @q
+          OR v.UniqueCode LIKE @q
+          OR v.Model LIKE @q
           OR CONVERT(nvarchar(50), r.RentalId) LIKE @q
         )
       `;
         }
 
-        // scope condition
+        // Scope predicates (used INSIDE the CTE, so `r` is valid)
         let scopeWhere = "";
         let orderBy = "";
         switch (scope) {
             case "due-today":
             case "due_today":
+                // Treat DueDate as the expected date for ongoing/overdue; fall back to actual if needed
                 scopeWhere = `
-          r.Status = 'ongoing'
-          AND CONVERT(date, r.ExpectedReturnDate) = CONVERT(date, SYSUTCDATETIME())
+          r.Status IN ('ongoing','overdue')
+          AND CONVERT(date, COALESCE(r.ExpectedReturnDate, r.ActualReturnDate))
+              = CONVERT(date, SYSUTCDATETIME())
         `;
-                orderBy = "ORDER BY r.ExpectedReturnDate ASC";
+                orderBy = "ORDER BY DueDate ASC, RentalId ASC";
                 break;
 
             case "recent":
@@ -53,16 +57,20 @@ export async function GET(req: NextRequest) {
           AND r.ActualReturnDate IS NOT NULL
           AND r.ActualReturnDate >= DATEADD(day, -7, SYSUTCDATETIME())
         `;
-                orderBy = "ORDER BY r.ActualReturnDate DESC";
+                orderBy = "ORDER BY ActualReturnDate DESC, RentalId DESC";
                 break;
 
             case "overdue":
             default:
+                // Match dashboard: 'overdue' OR ('ongoing' and expected due passed)
                 scopeWhere = `
           (r.Status = 'overdue')
-          OR (r.Status = 'ongoing' AND r.ExpectedReturnDate < SYSUTCDATETIME())
+          OR (
+            r.Status = 'ongoing'
+            AND COALESCE(r.ExpectedReturnDate, r.ActualReturnDate) < SYSUTCDATETIME()
+          )
         `;
-                orderBy = "ORDER BY r.ExpectedReturnDate ASC";
+                orderBy = "ORDER BY DueDate ASC, RentalId ASC";
                 break;
         }
 
@@ -76,13 +84,21 @@ export async function GET(req: NextRequest) {
                     v.UniqueCode, v.Model,
                     r.PlanId,
                     p.PlanName,
-                    r.StartDate, r.ExpectedReturnDate, r.ActualReturnDate,
+                    r.StartDate,
+                    r.ExpectedReturnDate,
+                    r.ActualReturnDate,
+                    /* Unified date used for 'overdue'/'due-today' ordering & filtering */
+                    CASE
+                        WHEN r.Status IN ('ongoing','overdue')
+                            THEN COALESCE(r.ExpectedReturnDate, r.ActualReturnDate)
+                        ELSE r.ActualReturnDate
+                        END AS DueDate,
                     r.Status,
                     r.PayableTotal, r.PaidTotal,
                     (r.PayableTotal - r.PaidTotal) AS BalanceDue
                 FROM Rentals r
-                         JOIN Riders  ri ON ri.RiderId = r.RiderId
-                         JOIN Vehicles v  ON v.VehicleId = r.VehicleId
+                         JOIN Riders  ri ON ri.RiderId  = r.RiderId
+                         JOIN Vehicles v ON v.VehicleId = r.VehicleId
                          LEFT JOIN Plans p ON p.PlanId   = r.PlanId
                 WHERE (${scopeWhere}) ${whereSearch}
                 )
@@ -102,6 +118,7 @@ export async function GET(req: NextRequest) {
             startDate: r.StartDate,
             expectedReturnDate: r.ExpectedReturnDate,
             actualReturnDate: r.ActualReturnDate,
+            dueDate: r.DueDate, // unified date used for overdue/due-today lists
             status: String(r.Status),
             payableTotal: Number(r.PayableTotal),
             paidTotal: Number(r.PaidTotal),

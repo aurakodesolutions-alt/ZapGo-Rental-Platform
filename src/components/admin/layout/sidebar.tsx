@@ -94,6 +94,7 @@ export function Sidebar() {
 
     const batteryLinks = [
         { href: '/admin/inventory', label: 'Inventory', icon: <Battery className="h-4 w-4" />},
+        { href: '/admin/battery-swaps', label: 'Battery Swap', icon: <Battery className="h-4 w-4" />},
     ]
 
     const adminLinks = [

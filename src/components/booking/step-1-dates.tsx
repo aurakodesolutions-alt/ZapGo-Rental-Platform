@@ -55,7 +55,7 @@ export function Step1_Dates({ onNext }: Step1DatesProps) {
                         onDateChange={handleDateChange}
                         disabledDates={(date) => isBefore(date, addDays(new Date(),-1))}
                     />
-                    <p className="text-xs text-muted-foreground">Maximum rental period is 30 days.</p>
+                    <p className="text-xs text-muted-foreground">Maximum rental period is 90 days.</p>
                 </div>
             </div>
 

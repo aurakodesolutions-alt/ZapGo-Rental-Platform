@@ -111,7 +111,7 @@ export function Step2_Vehicle({ onNext }: Step2VehicleProps) {
                             .filter((v: any) => (typeof (v as any).remaining === "number" ? (v as any).remaining > 0 : true))
                             .map((vehicle) => (
                                 <div
-                                    key={vehicle.id}
+                                    key={vehicle.vehicleId}
                                     onClick={() => handleSelectVehicle(vehicle)}
                                     className="cursor-pointer"
                                 >
