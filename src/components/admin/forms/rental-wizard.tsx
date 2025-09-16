@@ -30,6 +30,7 @@ import {
     Wallet,
 } from "lucide-react";
 import type { Vehicle, Plan } from "@/lib/types";
+import { useMiscInventory } from "@/hooks/api/use-misc-inventory";
 
 const WizardSchema = z.object({
     riderId: z.coerce.number().int().positive({ message: "Select a rider" }),
@@ -42,6 +43,9 @@ const WizardSchema = z.object({
     payNowAmount: z.coerce.number().min(0).default(0),
     payNowMethod: z.string().trim().default("CASH"),
     payNowTxnRef: z.string().trim().optional(),
+    batteryId: z.coerce.number().int().optional().nullable(),
+    chargerId: z.coerce.number().int().optional().nullable(),
+    accessoriesNotes: z.string().trim().max(1000).optional().default(""),
 });
 
 type FormValues = z.infer<typeof WizardSchema>;
@@ -50,6 +54,7 @@ const STEPS = ["Rider", "Vehicle", "Dates", "Payment", "Confirm"] as const;
 export function RentalWizard() {
     const router = useRouter();
     const { toast } = useToast();
+    const { batteries, chargers, isLoading: invLoading } = useMiscInventory();
 
     // DB hooks
     const { riders = [], isLoading: ridersLoading } = useRiders();
@@ -67,6 +72,9 @@ export function RentalWizard() {
             payNowAmount: 0,
             payNowMethod: "CASH",
             payNowTxnRef: "",
+            batteryId: null,
+            chargerId: null,
+            accessoriesNotes: "",
         },
         mode: "onChange",
     });
@@ -141,18 +149,20 @@ export function RentalWizard() {
             const body = {
                 riderId: Number(values.riderId),
                 vehicleId: Number(values.vehicleId),
-                planId: Number(values.planId), // from vehicle
+                planId: Number(values.planId),
                 startDate: new Date(values.startDate).toISOString(),
                 expectedReturnDate: new Date(values.expectedReturnDate).toISOString(),
-                payment:
-                    Number(values.payNowAmount) > 0
-                        ? {
-                            amount: Number(values.payNowAmount),
-                            method: values.payNowMethod,
-                            status: "SUCCESS",
-                            txnRef: values.payNowTxnRef || null,
-                        }
-                        : undefined,
+                payment: Number(values.payNowAmount) > 0 ? {
+                    amount: Number(values.payNowAmount),
+                    method: values.payNowMethod,
+                    status: "SUCCESS",
+                    txnRef: values.payNowTxnRef || null,
+                } : undefined,
+                accessories: {
+                    batteryIds: values.batteryId ? [Number(values.batteryId)] : [],
+                    chargerIds: values.chargerId ? [Number(values.chargerId)] : [],
+                    notes: values.accessoriesNotes || undefined,
+                },
             };
 
             const r = await fetch("/api/v1/admin/rentals", {
@@ -387,6 +397,82 @@ export function RentalWizard() {
                                         <KV label="Joining" value={`₹${joining || 0}`} />
                                         <KV label="Deposit" value={`₹${deposit || 0}`} />
                                     </div>
+                                    {/* Accessories */}
+                                    <div className="mt-6 rounded-lg border p-4 space-y-4">
+                                        <div className="text-sm font-medium">Accessories to hand over</div>
+                                        <div className="grid gap-4 md:grid-cols-2">
+                                            <FormField
+                                                control={form.control}
+                                                name="batteryId"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Battery</FormLabel>
+                                                        <Select
+                                                            onValueChange={(v) => field.onChange(v ? Number(v) : null)}
+                                                            defaultValue={field.value ? String(field.value) : undefined}
+                                                            disabled={invLoading}
+                                                        >
+                                                            <FormControl>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder={invLoading ? "Loading…" : "Select battery"} />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                {batteries.map((b) => (
+                                                                    <SelectItem key={b.itemId} value={String(b.itemId)}>
+                                                                        {b.serialNumber || `#${b.itemId}`}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="chargerId"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Charger</FormLabel>
+                                                        <Select
+                                                            onValueChange={(v) => field.onChange(v ? Number(v) : null)}
+                                                            defaultValue={field.value ? String(field.value) : undefined}
+                                                            disabled={invLoading}
+                                                        >
+                                                            <FormControl>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder={invLoading ? "Loading…" : "Select charger"} />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                {chargers.map((c) => (
+                                                                    <SelectItem key={c.itemId} value={String(c.itemId)}>
+                                                                        {c.serialNumber || `#${c.itemId}`}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                        <FormField
+                                            control={form.control}
+                                            name="accessoriesNotes"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Extra items / notes</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="e.g., phone mount, rain cover…" {...field} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </div>
+
                                 </div>
                             )}
 

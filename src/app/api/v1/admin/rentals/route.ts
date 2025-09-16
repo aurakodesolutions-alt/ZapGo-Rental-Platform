@@ -168,15 +168,19 @@ const CreateSchema = z.object({
     planId: z.coerce.number().int().positive(),
     startDate: z.string().datetime({ offset: false }),
     expectedReturnDate: z.string().datetime({ offset: false }),
-    payment: z
-        .object({
-            amount: z.coerce.number().nonnegative().default(0),
-            method: z.string().trim().default("CASH"),
-            status: z.string().trim().default("SUCCESS"), // SUCCESS | FAILED | PENDING
-            txnRef: z.string().trim().nullable().optional(),
-        })
-        .optional(),
+    payment: z.object({
+        amount: z.coerce.number().nonnegative().default(0),
+        method: z.string().trim().default("CASH"),
+        status: z.string().trim().default("SUCCESS"),
+        txnRef: z.string().trim().nullable().optional(),
+    }).optional(),
+    accessories: z.object({
+        batteryIds: z.array(z.coerce.number().int().positive()).default([]),
+        chargerIds: z.array(z.coerce.number().int().positive()).default([]),
+        notes: z.string().trim().max(1000).optional(),
+    }).optional(),
 });
+
 
 export async function POST(req: NextRequest) {
     let trx: sql.Transaction | null = null;
@@ -322,6 +326,26 @@ export async function POST(req: NextRequest) {
           FROM Rentals r
           WHERE r.RentalId=@rentalId2;
         `);
+        }
+
+        if (data.accessories) {
+            const ids = [...(data.accessories.batteryIds || []), ...(data.accessories.chargerIds || [])];
+            for (const id of ids) {
+                await tReq()
+                    .input("ItemId", sql.BigInt, id)
+                    .input("RentalId", sql.BigInt, rentalId)
+                    .input("Notes", sql.NVarChar(1000), data.accessories.notes ?? null)
+                    .query(`
+        UPDATE dbo.MiscInventory
+        SET AssignedRentalId=@RentalId,
+            Status='Assigned',
+            Notes = COALESCE(@Notes, Notes),
+            UpdatedAt=SYSUTCDATETIME()
+        WHERE ItemId=@ItemId
+          AND (AssignedRentalId IS NULL)
+          AND Status='Available';
+      `);
+            }
         }
 
         await trx.commit();

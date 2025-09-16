@@ -70,6 +70,14 @@ export const BookingProvider = ({ children }: { children: ReactNode }) => {
                     if (parsed.dates?.to) parsed.dates.to = new Date(parsed.dates.to);
                     dispatch({ type: 'HYDRATE_DRAFT', payload: parsed });
                 }
+                if (parsed?.vehicle) {
+                    const vid = parsed.vehicle.vehicleId ?? parsed.vehicle.id ?? parsed.vehicle.VehicleId;
+                    if (vid && !parsed.vehicle.vehicleId) parsed.vehicle.vehicleId = Number(vid);
+                    if (parsed.vehicle.RentPerDay && !parsed.vehicle.rentPerDay) {
+                        parsed.vehicle.rentPerDay = Number(parsed.vehicle.RentPerDay);
+                    }
+                    if (!parsed.vehicle.model && parsed.vehicle.Model) parsed.vehicle.model = parsed.vehicle.Model;
+                }
             }
         } catch (error) {
             console.error("Failed to load booking draft from localStorage", error);

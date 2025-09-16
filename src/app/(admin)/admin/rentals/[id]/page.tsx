@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, CreditCard, Printer, RotateCcw } from 'lucide-react';
 import QRCode from 'qrcode.react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { useMiscInventory } from '@/hooks/api/use-misc-inventory';
+
 
 import { PageHeader } from '@/components/admin/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,8 +18,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { formatINR, formatIST } from '@/lib/format';
+import {Separator} from "@/components/ui/separator";
 
-type RentalStatus = 'ongoing' | 'completed' | 'overdue' | 'cancelled' | string;
+type RentalStatus = 'confirmed'|'ongoing' | 'completed' | 'overdue' | 'cancelled' | string;
 
 type Rental = {
     rentalId: number;
@@ -59,6 +64,25 @@ export default function RentalDetailPage() {
     const [error, setError] = React.useState<string | null>(null);
     const [rental, setRental] = React.useState<Rental | null>(null);
     const [payments, setPayments] = React.useState<Payment[]>([]);
+    const { batteries, chargers, isLoading: invLoading, mutate: refreshInv } = useMiscInventory();
+
+    const [startAmount, setStartAmount] = React.useState<number>(0);
+    const [startMethod, setStartMethod] = React.useState<"CASH"|"UPI">("UPI");
+    const [upiId, setUpiId] = React.useState<string>("merchant@upi"); // admin can edit
+    const [txnRef, setTxnRef] = React.useState<string>("");
+
+    const [batteryId, setBatteryId] = React.useState<number | null>(null);
+    const [chargerId, setChargerId] = React.useState<number | null>(null);
+    const [accessoriesNotes, setAccessoriesNotes] = React.useState<string>("");
+
+    const upiUrl = React.useMemo(() => {
+        const pa = encodeURIComponent(upiId || "");
+        const pn = encodeURIComponent("ZapGo Rentals");
+        const am = startAmount > 0 ? `&am=${encodeURIComponent(String(startAmount))}` : "";
+        const tn = encodeURIComponent(`Rental ${params.id}`);
+        return `upi://pay?pa=${pa}&pn=${pn}${am}&cu=INR&tn=${tn}`;
+    }, [upiId, startAmount, params.id]);
+
 
     const load = React.useCallback(async () => {
         setLoading(true);
@@ -77,6 +101,39 @@ export default function RentalDetailPage() {
     }, [id]);
 
     React.useEffect(() => { load(); }, [load]);
+
+    const handleStartRental = async () => {
+        if (!rental) return;
+        try {
+            if (!(startAmount > 0)) throw new Error("Enter amount to collect");
+            const res = await fetch(`/api/v1/admin/rentals/${rental.rentalId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'start',
+                    payment: {
+                        amount: startAmount,
+                        method: startMethod,
+                        txnRef: txnRef || null,
+                    },
+                    accessories: {
+                        batteryIds: batteryId ? [batteryId] : [],
+                        chargerIds: chargerId ? [chargerId] : [],
+                        notes: accessoriesNotes || undefined,
+                    }
+                })
+            });
+            const json = await res.json();
+            if (!res.ok || !json?.ok) throw new Error(json?.error || "Failed to start rental");
+
+            toast({ title: 'Rental started', description: 'Status changed to ongoing.' });
+            await load();
+            await refreshInv(); // refresh accessory availability
+        } catch (e: any) {
+            toast({ title: 'Error', description: String(e?.message || e), variant: 'destructive' });
+        }
+    };
+
 
     const handleReturn = async () => {
         if (!confirm('Mark this rental as returned?')) return;
@@ -216,6 +273,107 @@ export default function RentalDetailPage() {
 
                 {/* RIGHT: Money + Actions */}
                 <div className="space-y-6">
+                    {String(rental.status).toLowerCase() === 'confirmed' && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Start Rental (collect payment)</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                {/* Accessories */}
+                                <div className="space-y-2">
+                                    <div className="text-sm font-medium">Accessories</div>
+                                    <div className="grid gap-3">
+                                        <div>
+                                            <div className="text-xs text-muted-foreground mb-1">Battery</div>
+                                            <Select
+                                                onValueChange={(v) => setBatteryId(v ? Number(v) : null)}
+                                                disabled={invLoading}
+                                            >
+                                                <SelectTrigger><SelectValue placeholder={invLoading ? "Loading…" : "Select battery"} /></SelectTrigger>
+                                                <SelectContent>
+                                                    {batteries.map(b => (
+                                                        <SelectItem key={b.itemId} value={String(b.itemId)}>
+                                                            {b.serialNumber || `Battery #${b.itemId}`}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div>
+                                            <div className="text-xs text-muted-foreground mb-1">Charger</div>
+                                            <Select
+                                                onValueChange={(v) => setChargerId(v ? Number(v) : null)}
+                                                disabled={invLoading}
+                                            >
+                                                <SelectTrigger><SelectValue placeholder={invLoading ? "Loading…" : "Select charger"} /></SelectTrigger>
+                                                <SelectContent>
+                                                    {chargers.map(c => (
+                                                        <SelectItem key={c.itemId} value={String(c.itemId)}>
+                                                            {c.serialNumber || `Charger #${c.itemId}`}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <Input
+                                            placeholder="Extra items / notes"
+                                            value={accessoriesNotes}
+                                            onChange={(e) => setAccessoriesNotes(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <Separator />
+
+                                {/* Payment */}
+                                <div className="space-y-2">
+                                    <div className="text-sm font-medium">Collect Payment</div>
+                                    <div className="grid gap-3">
+                                        <Input
+                                            type="number"
+                                            min={0}
+                                            step="0.01"
+                                            placeholder="Amount (₹)"
+                                            value={startAmount}
+                                            onChange={(e) => setStartAmount(Number(e.target.value || 0))}
+                                        />
+                                        <Select onValueChange={(v) => setStartMethod(v as "CASH"|"UPI")} defaultValue="UPI">
+                                            <SelectTrigger><SelectValue placeholder="Method" /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="UPI">UPI</SelectItem>
+                                                <SelectItem value="CASH">Cash</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+
+                                        {startMethod === "UPI" && (
+                                            <div className="space-y-2">
+                                                <Input placeholder="Your UPI ID (receiver)" value={upiId} onChange={(e) => setUpiId(e.target.value)} />
+                                                <div className="flex justify-center">
+                                                    <QRCode value={upiUrl} size={160} />
+                                                </div>
+                                                <p className="text-[11px] text-muted-foreground break-all">
+                                                    {upiUrl}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        <Input placeholder="Txn ref / notes (optional)" value={txnRef} onChange={(e) => setTxnRef(e.target.value)} />
+                                    </div>
+                                </div>
+
+                                <Button
+                                    className="w-full"
+                                    onClick={handleStartRental}
+                                    disabled={!(startAmount > 0)}
+                                >
+                                    Mark Paid & Start
+                                </Button>
+                                <p className="text-xs text-muted-foreground">
+                                    You must record a payment before changing status to <b>ongoing</b>.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    )}
                     <Card className="bg-primary text-primary-foreground">
                         <CardHeader><CardTitle>Balance Due</CardTitle></CardHeader>
                         <CardContent>

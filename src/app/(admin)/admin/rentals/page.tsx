@@ -115,6 +115,7 @@ export default function RentalsPage() {
 
     const statusBadge = (s: RentalStatus) => {
         const lower = (s || '').toString().toLowerCase();
+        if(lower === 'confirmed') return <Badge variant={"secondary"}>confirmed</Badge>
         if (lower === 'completed') return <Badge variant="default">completed</Badge>;
         if (lower === 'overdue')   return <Badge variant="destructive">overdue</Badge>;
         if (lower === 'cancelled') return <Badge variant="outline">cancelled</Badge>;

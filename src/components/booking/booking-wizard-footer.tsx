@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Button } from '../ui/button';
-import { useBookingWizard } from './booking-provider';
-import { isAfter } from 'date-fns';
+import { Button } from "../ui/button";
+import { useBookingWizard } from "./booking-provider";
+import { isAfter } from "date-fns";
 
 interface WizardFooterProps {
     currentStep: number;
@@ -16,17 +16,22 @@ export function WizardFooter({ currentStep, onNext, onBack }: WizardFooterProps)
     const isNextDisabled = () => {
         switch (currentStep) {
             case 1:
-                return !draft.dates?.from || !draft.dates?.to || !draft.city || !isAfter(draft.dates.to, draft.dates.from);
+                return (
+                    !draft.dates?.from ||
+                    !draft.dates?.to ||
+                    !draft.city ||
+                    !isAfter(draft.dates.to, draft.dates.from)
+                );
             case 2:
                 return !draft.vehicle;
             case 3:
-                return !draft.plan;
+                return !draft.planName;
             case 4:
                 return !draft.contact?.fullName || !draft.kyc?.aadhaar || !draft.termsAccepted;
             default:
-                return true; // Step 5 is handled within the component
+                return true; // step 5 manages itself
         }
-    }
+    };
 
     if (currentStep >= 5) return null;
 
@@ -35,10 +40,14 @@ export function WizardFooter({ currentStep, onNext, onBack }: WizardFooterProps)
             <div className="container mx-auto px-4">
                 <div className="max-w-4xl mx-auto flex justify-between items-center">
                     {currentStep > 1 ? (
-                        <Button variant="outline" onClick={onBack}>Back</Button>
-                    ) : <div />}
+                        <Button variant="outline" onClick={onBack}>
+                            Back
+                        </Button>
+                    ) : (
+                        <div />
+                    )}
                     <Button onClick={onNext} disabled={isNextDisabled()}>
-                        {currentStep === 4 ? 'Continue to Payment' : 'Next'}
+                        {currentStep === 4 ? "Review & Confirm" : "Next"}
                     </Button>
                 </div>
             </div>

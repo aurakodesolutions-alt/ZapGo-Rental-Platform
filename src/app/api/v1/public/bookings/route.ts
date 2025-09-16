@@ -37,10 +37,10 @@ export async function POST(req: NextRequest) {
             const r = await tReq()
                 .input("vid", sql.BigInt, vehicleId)
                 .query(`
-          SELECT Quantity
-          FROM Vehicles WITH (UPDLOCK, ROWLOCK, HOLDLOCK)
-          WHERE VehicleId=@vid AND Status='Available';
-        `);
+                    SELECT Quantity
+                    FROM Vehicles WITH (UPDLOCK, ROWLOCK, HOLDLOCK)
+                    WHERE VehicleId=@vid AND Status='Available';
+                `);
 
             if (!r.recordset.length) throw new Error("Vehicle not found");
             const qty = Number(r.recordset[0].Quantity || 0);
@@ -64,20 +64,20 @@ export async function POST(req: NextRequest) {
                         .input("email", sql.NVarChar(256), contact.email)
                         .input("hash", sql.NVarChar(255), hash)
                         .query(`
-              UPDATE Riders
-              SET FullName=@name, Email=@email, PasswordHash=@hash, IsActive=1
-              WHERE RiderId=@rid;
-            `);
+                            UPDATE Riders
+                            SET FullName=@name, Email=@email, PasswordHash=@hash, IsActive=1
+                            WHERE RiderId=@rid;
+                        `);
                 } else {
                     await tReq()
                         .input("rid", sql.Int, riderId)
                         .input("name", sql.NVarChar(100), contact.fullName)
                         .input("email", sql.NVarChar(256), contact.email)
                         .query(`
-              UPDATE Riders
-              SET FullName=@name, Email=@email
-              WHERE RiderId=@rid;
-            `);
+                            UPDATE Riders
+                            SET FullName=@name, Email=@email
+                            WHERE RiderId=@rid;
+                        `);
                 }
             } else {
                 const hash = await bcrypt.hash(password, 10);
@@ -87,60 +87,58 @@ export async function POST(req: NextRequest) {
                     .input("phone", sql.VarChar(15), contact.phone)
                     .input("hash", sql.NVarChar(255), hash)
                     .query(`
-            INSERT INTO Riders (FullName, Phone, Email, PasswordHash, CreatedAtUtc, IsActive)
-            OUTPUT INSERTED.RiderId
-            VALUES (@name, @phone, @email, @hash, SYSUTCDATETIME(), 1);
-          `);
+                        INSERT INTO Riders (FullName, Phone, Email, PasswordHash, CreatedAtUtc, IsActive)
+                            OUTPUT INSERTED.RiderId
+                        VALUES (@name, @phone, @email, @hash, SYSUTCDATETIME(), 1);
+                    `);
                 riderId = ins.recordset[0].RiderId;
             }
         }
 
-        // 2) KYC upsert
         // 2) KYC upsert (accept multiple client key variants + avoid null overwrite)
         if (kyc) {
             const clean = (v: any) =>
                 v === undefined || v === null || String(v).trim() === "" ? null : String(v).trim();
 
             const aadhaarNum = clean(kyc.aadhaar);
-            const panNum     = clean(kyc.pan);
-            const dlNum      = clean(kyc.dl);
+            const panNum = clean(kyc.pan);
+            const dlNum = clean(kyc.dl);
 
             // accept both naming conventions from clients
             const aadhaarUrl = clean(kyc.aadhaarImageUrl ?? kyc.aadhaarUrl);
-            const panUrl     = clean(kyc.panCardImageUrl ?? kyc.panImageUrl);
-            const dlUrl      = clean(kyc.drivingLicenseImageUrl ?? kyc.dlImageUrl);
-            const selfieUrl  = clean(kyc.selfieImageUrl ?? kyc.selfieUrl ?? kyc.selfieFile);
+            const panUrl = clean(kyc.panCardImageUrl ?? kyc.panImageUrl);
+            const dlUrl = clean(kyc.drivingLicenseImageUrl ?? kyc.dlImageUrl);
+            const selfieUrl = clean(kyc.selfieImageUrl ?? kyc.selfieUrl ?? kyc.selfieFile);
 
             await tReq()
-                .input("rid",        sql.Int,          riderId)
-                .input("aadhaar",    sql.Char(12),     aadhaarNum)
-                .input("pan",        sql.Char(10),     panNum)
-                .input("dl",         sql.NVarChar(32), dlNum)
+                .input("rid", sql.Int, riderId)
+                .input("aadhaar", sql.Char(12), aadhaarNum)
+                .input("pan", sql.Char(10), panNum)
+                .input("dl", sql.NVarChar(32), dlNum)
                 .input("aadhaarUrl", sql.NVarChar(2048), aadhaarUrl)
-                .input("panUrl",     sql.NVarChar(2048), panUrl)
-                .input("dlUrl",      sql.NVarChar(2048), dlUrl)
-                .input("selfieUrl",  sql.NVarChar(2048), selfieUrl)
+                .input("panUrl", sql.NVarChar(2048), panUrl)
+                .input("dlUrl", sql.NVarChar(2048), dlUrl)
+                .input("selfieUrl", sql.NVarChar(2048), selfieUrl)
                 .query(`
-      MERGE RiderKyc AS tgt
-      USING (SELECT @rid AS RiderId) AS src
-      ON tgt.RiderId = src.RiderId
-      WHEN MATCHED THEN
-        UPDATE SET
-          AadhaarNumber           = COALESCE(@aadhaar,    tgt.AadhaarNumber),
-          PanNumber               = COALESCE(@pan,        tgt.PanNumber),
-          DrivingLicenseNumber    = COALESCE(@dl,         tgt.DrivingLicenseNumber),
-          AadhaarImageUrl         = COALESCE(@aadhaarUrl, tgt.AadhaarImageUrl),
-          PanCardImageUrl         = COALESCE(@panUrl,     tgt.PanCardImageUrl),
-          DrivingLicenseImageUrl  = COALESCE(@dlUrl,      tgt.DrivingLicenseImageUrl),
-          SelfieImageUrl          = COALESCE(@selfieUrl,  tgt.SelfieImageUrl),
-          KycCreatedAtUtc         = SYSUTCDATETIME()
-      WHEN NOT MATCHED THEN
-        INSERT (RiderId, AadhaarNumber, PanNumber, DrivingLicenseNumber,
-                AadhaarImageUrl, PanCardImageUrl, DrivingLicenseImageUrl, SelfieImageUrl, KycCreatedAtUtc)
-        VALUES (@rid, @aadhaar, @pan, @dl, @aadhaarUrl, @panUrl, @dlUrl, @selfieUrl, SYSUTCDATETIME());
-    `);
+          MERGE RiderKyc AS tgt
+          USING (SELECT @rid AS RiderId) AS src
+          ON tgt.RiderId = src.RiderId
+          WHEN MATCHED THEN
+            UPDATE SET
+              AadhaarNumber           = COALESCE(@aadhaar,    tgt.AadhaarNumber),
+              PanNumber               = COALESCE(@pan,        tgt.PanNumber),
+              DrivingLicenseNumber    = COALESCE(@dl,         tgt.DrivingLicenseNumber),
+              AadhaarImageUrl         = COALESCE(@aadhaarUrl, tgt.AadhaarImageUrl),
+              PanCardImageUrl         = COALESCE(@panUrl,     tgt.PanCardImageUrl),
+              DrivingLicenseImageUrl  = COALESCE(@dlUrl,      tgt.DrivingLicenseImageUrl),
+              SelfieImageUrl          = COALESCE(@selfieUrl,  tgt.SelfieImageUrl),
+              KycCreatedAtUtc         = SYSUTCDATETIME()
+          WHEN NOT MATCHED THEN
+            INSERT (RiderId, AadhaarNumber, PanNumber, DrivingLicenseNumber,
+                    AadhaarImageUrl, PanCardImageUrl, DrivingLicenseImageUrl, SelfieImageUrl, KycCreatedAtUtc)
+            VALUES (@rid, @aadhaar, @pan, @dl, @aadhaarUrl, @panUrl, @dlUrl, @selfieUrl, SYSUTCDATETIME());
+        `);
         }
-
 
         // 3) Pricing lookup
         const vehQ = await tReq()
@@ -170,16 +168,20 @@ export async function POST(req: NextRequest) {
             const upd = await tReq()
                 .input("vid3", sql.BigInt, vehicleId)
                 .query(`
-          UPDATE Vehicles SET Quantity = Quantity - 1
-          WHERE VehicleId=@vid3 AND Quantity > 0;
-          SELECT @@ROWCOUNT AS rc;
-        `);
+                    UPDATE Vehicles SET Quantity = Quantity - 1
+                    WHERE VehicleId=@vid3 AND Quantity > 0;
+                    SELECT @@ROWCOUNT AS rc;
+                `);
             if ((upd.recordset[0]?.rc ?? 0) === 0) throw new Error("OUT_OF_STOCK");
         }
 
-        // 5) Insert Rental
+        // 5) Insert Rental  (now also persisting BalanceDue)
         const pricingJson = JSON.stringify({
-            rentPerDay, days, usage, joining, deposit,
+            rentPerDay,
+            days,
+            usage,
+            joining,
+            deposit,
             paymentOption: payment?.option || null,
             customAmount: payment?.customAmount || 0,
         });
@@ -190,30 +192,51 @@ export async function POST(req: NextRequest) {
             .input("pid", sql.Int, planId)
             .input("start", sql.DateTime2, dates.from)
             .input("exp", sql.DateTime2, dates.to)
-            .input("status", sql.VarChar(20), "ongoing")
-            .input("rate", sql.Decimal(10,2), rentPerDay)
-            .input("deposit", sql.Decimal(10,2), deposit)
+            .input("status", sql.VarChar(20), "confirmed")
+            .input("rate", sql.Decimal(10, 2), rentPerDay)
+            .input("deposit", sql.Decimal(10, 2), deposit)
             .input("pricing", sql.NVarChar(sql.MAX), pricingJson)
-            .input("payable", sql.Decimal(12,2), payableTotal)
-            .input("paid", sql.Decimal(12,2), amountPaid)
+            .input("payable", sql.Decimal(12, 2), payableTotal)
+            .input("paid", sql.Decimal(12, 2), amountPaid)
             .query(`
-        INSERT INTO Rentals
-          (RiderId, VehicleId, PlanId, StartDate, ExpectedReturnDate, Status,
-           RatePerDay, Deposit, PricingJson, PayableTotal, PaidTotal, CreatedAt, UpdatedAt)
-        OUTPUT INSERTED.RentalId
-        VALUES
-          (@rid, @vid, @pid, @start, @exp, @status,
-           @rate, @deposit, @pricing, @payable, @paid, SYSUTCDATETIME(), SYSUTCDATETIME());
-      `);
+                INSERT INTO Rentals
+                (RiderId, VehicleId, PlanId, StartDate, ExpectedReturnDate, Status,
+                 RatePerDay, Deposit, PricingJson, PayableTotal, PaidTotal, CreatedAt, UpdatedAt)
+                    OUTPUT INSERTED.RentalId
+                VALUES
+                    (@rid, @vid, @pid, @start, @exp, @status,
+                    @rate, @deposit, @pricing, @payable, @paid, SYSUTCDATETIME(), SYSUTCDATETIME());
+            `);
 
         const rentalId = rentalIns.recordset[0].RentalId;
 
-        // 6) Payment (optional)
+        // 6) Insert categorized charge lines (due items)
+        //    These let admins see exactly what is owed by type.
+        const lines = [
+            { type: "JOINING_FEE", label: "Joining Fee", amount: joining },
+            { type: "SECURITY_DEPOSIT", label: "Security Deposit", amount: deposit },
+            { type: "USAGE_RENT", label: "Usage Rent", amount: usage },
+        ];
+
+        for (const L of lines) {
+            await tReq()
+                .input("rentalId", sql.BigInt, rentalId)
+                .input("rid2", sql.Int, riderId)
+                .input("t", sql.VarChar(20), L.type)
+                .input("lbl", sql.NVarChar(100), L.label)
+                .input("amt", sql.Decimal(12, 2), L.amount)
+                .query(`
+          INSERT INTO RentalChargeLines (RentalId, RiderId, ChargeType, Label, Amount, IsPaid, CreatedAt)
+          VALUES (@rentalId, @rid2, @t, @lbl, @amt, 0, SYSUTCDATETIME());
+        `);
+        }
+
+        // 7) OPTIONAL: Payment row (only when money is actually received)
         if (amountPaid > 0) {
             await tReq()
                 .input("rentalId", sql.BigInt, rentalId)
                 .input("rid2", sql.Int, riderId)
-                .input("amt", sql.Decimal(12,2), amountPaid)
+                .input("amt", sql.Decimal(12, 2), amountPaid)
                 .input("method", sql.VarChar(20), (payment?.method || "CASHFREE").toUpperCase())
                 .input("txn", sql.NVarChar(256), payment?.txnRef || null)
                 .input("status", sql.VarChar(20), "SUCCESS")
@@ -225,14 +248,16 @@ export async function POST(req: NextRequest) {
             (@rentalId, @rid2, @amt, @method, @txn, SYSUTCDATETIME(),
              @status, SYSUTCDATETIME(), SYSUTCDATETIME());
         `);
+
+            // If you later want to "allocate" this amount across the charge lines,
+            // add columns (e.g., PaidAmount) or a link table and update here.
         }
 
         await trx.commit();
         trx = null; // avoid double-rollback in finally
 
-        const balance = payableTotal - amountPaid;
         return NextResponse.json(
-            { rentalId, payableTotal, paid: amountPaid, balance },
+            { rentalId, payableTotal, paid: amountPaid, balance: payableTotal },
             { status: 201 }
         );
     } catch (err: any) {
@@ -241,8 +266,8 @@ export async function POST(req: NextRequest) {
             if (trx && (trx as any)._aborted !== true) {
                 await trx.rollback();
             }
-        } catch (rbErr) {
-            // swallow; the transaction might already be finalized by the driver
+        } catch {
+            // ignore rollback errors
         }
         console.error("booking error:", err);
         const message =
