@@ -195,8 +195,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         <SpeedInsights />
         <SWRegister />
-        {/* Load Cashfree only after hydration; consider moving to the specific payment page for perf */}
-        <Script src="https://sdk.cashfree.com/js/v3/cashfree.js" strategy="afterInteractive" />
         </body>
         </html>
     );
