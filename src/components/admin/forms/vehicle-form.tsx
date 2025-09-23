@@ -18,6 +18,7 @@ import type { Vehicle } from '@/lib/types';
 import { VehicleFormSchema } from '@/lib/schema';
 import { useVehicle, useVehicles } from '@/hooks/api/use-vehicles';
 import { usePlans } from '@/hooks/api/use-plans';
+import { useMiscInventory } from "@/hooks/api/use-misc-inventory";
 
 /* ---------------- Schema ---------------- */
 type VehicleFormValues = z.infer<typeof VehicleFormSchema>;
@@ -37,6 +38,8 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
 
     // Plans from DB
     const { plans, isLoading: plansLoading } = usePlans();
+    //Inventory From db :-
+    const { batteries, chargers, isLoading:inventoryLoading } = useMiscInventory();
 
     // Image file state & previews
     const [files, setFiles] = useState<File[]>([]);
@@ -97,6 +100,8 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
             specs_topSpeedKmph: vehicle.specs?.topSpeedKmph,
             specs_battery: vehicle.specs?.battery,
             specs_chargingTimeHrs: vehicle.specs?.chargingTimeHrs,
+            batteryId: vehicle.batteryId,
+            chargerId: vehicle.chargerId
         };
     }, [vehicle, plans]);
 
@@ -168,6 +173,8 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                     battery: values.specs_battery,
                     chargingTimeHrs: values.specs_chargingTimeHrs,
                 },
+                batteryId: values.batteryId,
+                chargerId: values.chargerId,
             };
 
             // 3) Create or update via your hooks
@@ -294,6 +301,57 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                                         onChange={(e) => field.onChange(toNum(e.target.value) ?? 0)}
                                     />
                                 </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Battery and Charger selection */}
+                    <FormField
+                        control={form.control}
+                        name="specs_battery"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Battery</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value ?? undefined} disabled={inventoryLoading}>
+                                    <FormControl>
+                                        <SelectTrigger><SelectValue placeholder="Select battery" /></SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {batteries?.map((battery) => (
+                                            <SelectItem key={battery.itemId} value={String(battery.itemId)}>
+                                                {battery.serialNumber}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="specs_chargingTimeHrs"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Charger</FormLabel>
+                                <Select
+                                    onValueChange={field.onChange}
+                                    value={field.value != null ? String(field.value) : undefined}  // Convert to string
+                                    disabled={inventoryLoading}
+                                >
+                                    <FormControl>
+                                        <SelectTrigger><SelectValue placeholder="Select charger" /></SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        {chargers?.map((charger) => (
+                                            <SelectItem key={charger.itemId} value={String(charger.itemId)}>
+                                                {charger.serialNumber}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                                 <FormMessage />
                             </FormItem>
                         )}

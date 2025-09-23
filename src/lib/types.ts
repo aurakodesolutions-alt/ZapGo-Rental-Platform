@@ -157,6 +157,10 @@ export interface Vehicle {
     rating?: number;
     tags?: string[];
 
+    //inventory
+    batteryId?: bigint | null;
+    chargerId?: bigint | null;
+
     // Metadata
     createdAt: string;
     updatedAt: string;

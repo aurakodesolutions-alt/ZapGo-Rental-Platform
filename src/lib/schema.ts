@@ -31,6 +31,8 @@ export const VehicleFormSchema = z.object({
     specs_topSpeedKmph: z.coerce.number().int().min(0).optional(),
     specs_battery: z.string().optional(),
     specs_chargingTimeHrs: z.coerce.number().min(0).optional(),
+    batteryId: z.bigint().optional().nullable(),
+    chargerId: z.bigint().optional().nullable(),
 });
 export const VehicleUpdateSchema = z.object({
     planId: z.coerce.number().int().min(1).optional(),
