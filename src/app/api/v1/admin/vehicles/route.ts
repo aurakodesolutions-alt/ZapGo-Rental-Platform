@@ -116,6 +116,8 @@ const VehicleCreateSchema = z.object({
             chargingTimeHrs: z.coerce.number().optional(),
         })
         .optional(),
+    batteryId: z.bigint().optional(),
+    chargerId: z.bigint().optional(),
 });
 
 /* -------------------- GET /api/v1/admin/vehicles -------------------- */
@@ -212,7 +214,6 @@ export async function POST(req: NextRequest) {
         const specsJson = toDbJson(body.specs ?? null);
 
         const r = new sql.Request(pool);
-        // r.timeout = 15000;
 
         r.input("PlanId", sql.Int, body.planId)
             .input("UniqueCode", sql.NVarChar(50), body.uniqueCode)
@@ -226,7 +227,9 @@ export async function POST(req: NextRequest) {
             .input("Specs", sql.NVarChar(sql.MAX), specsJson)
             .input("Rating", sql.Decimal(3, 2), body.rating ?? null)
             .input("Tags", sql.NVarChar(sql.MAX), tagsJson)
-            .input("Quantity", sql.Int, body.quantity ?? 1);
+            .input("Quantity", sql.Int, body.quantity ?? 1)
+            .input("BatteryId", sql.Int, body.batteryId ?? null)  // New field
+            .input("ChargerId", sql.Int, body.chargerId ?? null); // New field
 
         // INSERT + return new identity in the same batch
         const insertSql = `
@@ -234,10 +237,10 @@ export async function POST(req: NextRequest) {
 
       INSERT INTO dbo.Vehicles
         (PlanId, UniqueCode, Model, VinNumber, LastServiceDate, ServiceIntervalDays, Status, RentPerDay,
-         VehicleImagesURLs, Specs, Rating, Tags, Quantity)
+         VehicleImagesURLs, Specs, Rating, Tags, Quantity, BatteryId, ChargerId)
       VALUES
         (@PlanId, @UniqueCode, @Model, @VinNumber, @LastServiceDate, @ServiceIntervalDays, @Status, @RentPerDay,
-         @VehicleImagesURLs, @Specs, @Rating, @Tags, @Quantity);
+         @VehicleImagesURLs, @Specs, @Rating, @Tags, @Quantity, @BatteryId, @ChargerId);
 
       SELECT CAST(SCOPE_IDENTITY() AS INT) AS NewId;
     `;
@@ -247,6 +250,21 @@ export async function POST(req: NextRequest) {
 
         if (!newId) {
             return NextResponse.json({ ok: false, error: "Insert succeeded but id not returned" }, { status: 500 });
+        }
+
+        // Update the status of the battery and charger to 'Assigned' if their IDs are provided
+        if (body.batteryId) {
+            await pool
+                .request()
+                .input("BatteryId", sql.Int, body.batteryId)
+                .query(`UPDATE dbo.Inventory SET Status = 'Assigned' WHERE ItemId = @BatteryId`);
+        }
+
+        if (body.chargerId) {
+            await pool
+                .request()
+                .input("ChargerId", sql.Int, body.chargerId)
+                .query(`UPDATE dbo.Inventory SET Status = 'Assigned' WHERE ItemId = @ChargerId`);
         }
 
         // Fetch the row separately
