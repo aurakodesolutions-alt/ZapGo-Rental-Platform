@@ -116,8 +116,8 @@ const VehicleCreateSchema = z.object({
             chargingTimeHrs: z.coerce.number().optional(),
         })
         .optional(),
-    batteryId: z.bigint().optional(),
-    chargerId: z.bigint().optional(),
+    batteryId: z.string().optional(),
+    chargerId: z.string().optional(),
 });
 
 /* -------------------- GET /api/v1/admin/vehicles -------------------- */
@@ -204,10 +204,15 @@ export async function GET(req: NextRequest) {
 
 
 /* -------------------- POST /api/v1/admin/vehicles -------------------- */
+/* -------------------- POST /api/v1/admin/vehicles -------------------- */
 export async function POST(req: NextRequest) {
     try {
         const body = VehicleCreateSchema.parse(await req.json());
         const pool = await getConnection();
+
+        // Convert batteryId and chargerId from string to BigInt
+        const batteryId = body.batteryId ? BigInt(body.batteryId) : null;
+        const chargerId = body.chargerId ? BigInt(body.chargerId) : null;
 
         const imagesJson = toDbJson(body.vehicleImagesUrls ?? []);
         const tagsJson = toDbJson(body.tags ?? []);
@@ -228,8 +233,8 @@ export async function POST(req: NextRequest) {
             .input("Rating", sql.Decimal(3, 2), body.rating ?? null)
             .input("Tags", sql.NVarChar(sql.MAX), tagsJson)
             .input("Quantity", sql.Int, body.quantity ?? 1)
-            .input("BatteryId", sql.Int, body.batteryId ?? null)  // New field
-            .input("ChargerId", sql.Int, body.chargerId ?? null); // New field
+            .input("BatteryId", sql.BigInt, batteryId)  // New field
+            .input("ChargerId", sql.BigInt, chargerId); // New field
 
         // INSERT + return new identity in the same batch
         const insertSql = `
@@ -252,19 +257,40 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ ok: false, error: "Insert succeeded but id not returned" }, { status: 500 });
         }
 
+        // Log the batteryId and chargerId to verify the values
+        console.log(`batteryId: ${batteryId}, chargerId: ${chargerId}`);
+
         // Update the status of the battery and charger to 'Assigned' if their IDs are provided
-        if (body.batteryId) {
-            await pool
-                .request()
-                .input("BatteryId", sql.Int, body.batteryId)
-                .query(`UPDATE dbo.Inventory SET Status = 'Assigned' WHERE ItemId = @BatteryId`);
+        if (batteryId) {
+            try {
+                const updateBatteryStatusSql = `
+                    UPDATE dbo.MiscInventory
+                    SET Status = 'Assigned'
+                    WHERE ItemId = @BatteryId;
+                `;
+                await pool
+                    .request()
+                    .input("BatteryId", sql.BigInt, batteryId)
+                    .query(updateBatteryStatusSql);
+            } catch (err) {
+                console.error("Error updating battery status:", err);
+            }
         }
 
-        if (body.chargerId) {
-            await pool
-                .request()
-                .input("ChargerId", sql.Int, body.chargerId)
-                .query(`UPDATE dbo.Inventory SET Status = 'Assigned' WHERE ItemId = @ChargerId`);
+        if (chargerId) {
+            try {
+                const updateChargerStatusSql = `
+                    UPDATE dbo.MiscInventory
+                    SET Status = 'Assigned'
+                    WHERE ItemId = @ChargerId;
+                `;
+                await pool
+                    .request()
+                    .input("ChargerId", sql.BigInt, chargerId)
+                    .query(updateChargerStatusSql);
+            } catch (err) {
+                console.error("Error updating charger status:", err);
+            }
         }
 
         // Fetch the row separately

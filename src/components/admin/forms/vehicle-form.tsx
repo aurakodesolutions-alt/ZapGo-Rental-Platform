@@ -309,11 +309,11 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
                     {/* Battery and Charger selection */}
                     <FormField
                         control={form.control}
-                        name="specs_battery"
+                        name="batteryId"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Battery</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value ?? undefined} disabled={inventoryLoading}>
+                                <Select onValueChange={field.onChange} value={field.value !== null ? String(field.value) : undefined} disabled={inventoryLoading}>
                                     <FormControl>
                                         <SelectTrigger><SelectValue placeholder="Select battery" /></SelectTrigger>
                                     </FormControl>
@@ -332,15 +332,11 @@ export function VehicleForm({ vehicle, onSuccess }: Props) {
 
                     <FormField
                         control={form.control}
-                        name="specs_chargingTimeHrs"
+                        name="chargerId"
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Charger</FormLabel>
-                                <Select
-                                    onValueChange={field.onChange}
-                                    value={field.value != null ? String(field.value) : undefined}  // Convert to string
-                                    disabled={inventoryLoading}
-                                >
+                                <Select onValueChange={field.onChange} value={field.value !== null ? String(field.value) : undefined} disabled={inventoryLoading}>
                                     <FormControl>
                                         <SelectTrigger><SelectValue placeholder="Select charger" /></SelectTrigger>
                                     </FormControl>

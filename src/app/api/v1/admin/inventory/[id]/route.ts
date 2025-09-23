@@ -17,11 +17,11 @@ const UpdateSchema = z.object({
     notes: z.string().trim().max(1000).nullable().optional(),
 });
 
-export async function PATCH(_: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(_: NextRequest, props: { params: Promise<{ id: string }>}) {
     try {
         const body = await _.json();
         const data = UpdateSchema.parse(body);
-        const id = Number(params.id);
+        const id = Number((await (props.params)).id);
 
         const sets: string[] = [];
         const req = new sql.Request(await getConnection());
@@ -76,9 +76,9 @@ export async function PATCH(_: NextRequest, { params }: { params: { id: string }
     }
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_: NextRequest, props: { params: Promise<{ id: string }>}) {
     try {
-        const id = Number(params.id);
+        const id = Number((await (props.params)).id);
         const req = new sql.Request(await getConnection());
         req.input("id", sql.BigInt, id);
         const res = await req.query(`DELETE FROM MiscInventory WHERE ItemId=@id; SELECT @@ROWCOUNT AS rc;`);
