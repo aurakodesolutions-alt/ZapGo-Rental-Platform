@@ -109,7 +109,7 @@ function mapRentals(api: any): { items: UiRental[] } {
         const firstImage =
             (Array.isArray(images) && images[0]) ||
             r.vehicle?.image ||
-            "/images/vehicles/placeholder.webp";
+            "";
 
         return {
             rentalId: r.rentalId || r.RentalId || r.id,
@@ -283,7 +283,7 @@ export default function OverviewTab() {
                         <div className="grid gap-4 sm:grid-cols-3">
                             <div className="relative aspect-video overflow-hidden rounded-xl bg-muted sm:aspect-[4/3]">
                                 <Image
-                                    src={current.vehicle.image || "/images/vehicles/placeholder.webp"}
+                                    src={current.vehicle.image || ""}
                                     alt={current.vehicle.model}
                                     fill
                                     className="object-cover"

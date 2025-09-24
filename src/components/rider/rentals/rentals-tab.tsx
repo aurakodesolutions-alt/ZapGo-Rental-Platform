@@ -55,7 +55,7 @@ function mapRentals(raw: any): UiRental[] {
         const vehicle = r.vehicle || {};
         const images = vehicle.images || r.images || [];
         const firstImage =
-            (Array.isArray(images) && images[0]) || vehicle.image || "/images/vehicles/placeholder.webp";
+            (Array.isArray(images) && images[0]) || vehicle.image || "";
 
         return {
             rentalId: r.rentalId ?? r.RentalId ?? r.id,

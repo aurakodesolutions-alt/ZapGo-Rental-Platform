@@ -182,7 +182,7 @@ export default function VehiclesPage() {
                             image={
                                 v.vehicleImagesUrls?.[0] ||
                                 v.images?.[0] ||
-                                "/images/vehicles/placeholder.webp"
+                                ""
                             }
                         />
                     ))}

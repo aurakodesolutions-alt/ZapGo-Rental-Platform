@@ -15,7 +15,7 @@ export default function VehicleDetailsPage() {
 
     const v = data?.vehicle ?? data; // support either shape
     const images: string[] =
-        v?.vehicleImagesUrls ?? v?.images ?? ["/images/vehicles/placeholder.webp"];
+        v?.vehicleImagesUrls ?? v?.images ?? [""];
 
     return (
         <div className="container mx-auto px-4 py-8">

@@ -23,7 +23,7 @@ export default function VehicleCard(props: VehicleCardProps) {
         <Card className="group overflow-hidden rounded-2xl transition-shadow hover:shadow-lg">
             <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
                 <Image
-                    src={image || "/images/vehicles/placeholder.webp"}
+                    src={image || ""}
                     alt={model}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"
