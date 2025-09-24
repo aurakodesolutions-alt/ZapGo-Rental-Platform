@@ -61,7 +61,7 @@ export function Topbar() {
     const pathname = usePathname();
 
     const handleLogout = () => {
-        signOut({ callbackUrl: "/admin/login" });  // Call signOut to clear the store and session
+        signOut({ callbackUrl: "/login" });  // Call signOut to clear the store and session
         // router.push('/login');  // Redirect to login page
     };
 
