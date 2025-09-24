@@ -10,7 +10,7 @@ export default async function AdminEntry() {
     const session = await getServerSession(authOptions);
 
     if (!session) {
-        redirect("/login?callbackUrl=/admin");
+        redirect("/admin/login?callbackUrl=/admin");
     }
 
     if ((session.user as any)?.role !== "admin") {
